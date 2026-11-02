@@ -23,3 +23,7 @@ body{background:#17191b;color:#e8e5de;padding:18px 24px}html{background:#17191b}
  .mute{top:83.7303%;height:4.4944%}
  .version{top:20.0449%}
 }
+
+/* Replace the baked-in brand with scalable facade lettering. */
+.facade-title{position:absolute;left:8.2%;top:17.3%;width:43.3%;height:4.72%;pointer-events:none}
+@media(max-width:700px){.facade-title{left:8.7%;top:9.15%;width:42%;height:3.1%}}
