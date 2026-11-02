@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {readTrackTags,fallbackNames} from '../src/metadata.js';
-const base=await readFile(new URL('../public/assets/liora.mp3',import.meta.url));
+const base=await readFile(new URL('./fixtures/tagged-audio.mp3',import.meta.url));
 const oldSize=10+((base[6]<<21)|(base[7]<<14)|(base[8]<<7)|base[9]);
 const audio=base.subarray(oldSize,base.subarray(-128,-125).toString()==='TAG'?base.length-128:base.length);
 function tagged(version,encoding,artist,title,year){
