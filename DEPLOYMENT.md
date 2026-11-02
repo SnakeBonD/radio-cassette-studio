@@ -1,25 +1,9 @@
-# Publication
+# Déploiement du nouveau projet
 
-Dépôt : https://github.com/SnakeBonD/Virtual-Cassette-Player
+Dépôt : https://github.com/SnakeBonD/radio-cassette-studio
 
-Suivi : https://app.notion.com/p/4077458666978145be92ddcfc56e49c3
+Aucun déploiement ni domaine associé pour ce nouveau projet à cette étape. Ne pas réutiliser la liaison Vercel ni les domaines des projets d’origine sans instruction explicite.
 
-Domaine prévu : https://cassette.snakebond.net (publication non encore vérifiée).
+Le fichier vercel.json conserve la configuration technique portable : commande `npm run build`, sortie `public`, fonctions `api/year.js` et `api/cover.js`. Les fichiers `.vercel` et `.env` ne font pas partie du dépôt.
 
-## Configuration Vercel
-
-- Racine : ce répertoire ; framework : Other.
-- Construction : `npm run build` ; sortie statique : `public`.
-- La fonction Node `api/year.js` fournit `/api/year` et importe `year-service.mjs`.
-- Aucun secret requis par cette version. Ne jamais publier `.env` ou `.vercel`.
-- Le DNS est chez Gandi : ajouter uniquement l’enregistrement du sous-domaine `cassette` avec la valeur fournie par Vercel après association du domaine.
-
-## Validation avant livraison
-
-`npm test` puis `npm run build`. Vérifier sur le déploiement : chargement LIORA, import des tags, lecture, recherche d’année, export d’un extrait avec audio, HTTPS et ressources du domaine final.
-
-Les 26 tests et la construction locale passent. Le déploiement n’est pas encore validé. L’accès Vercel utilisé a refusé la création de projet (403), et le CLI n’a pas accès à l’équipe `snakebond`.
-
-## Limites
-
-L’export s’effectue en temps réel dans l’onglet actif. MP4 ou WebM dépend du navigateur. Les préférences restent locales ; les imports audio ne sont pas envoyés au serveur. La recherche MusicBrainz possède un cache et une file par processus, non partagés entre instances : elle peut échouer sous charge ou en cas de limitation du service, sans inventer d’année.
+Avant toute mise en ligne : choisir et vérifier un projet Vercel dédié, l’URL d’accueil (radio actuellement à `/radiocassette.html`, studio à `/`), le domaine éventuel et l’autorisation de déployer. Valider ensuite les imports, la lecture radio, les transitions de modes et un export vidéo avec audio sur l’URL cible.

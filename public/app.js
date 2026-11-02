@@ -184,3 +184,13 @@ window.addEventListener('beforeunload',e=>{if(exporting||$('saveState').textCont
 updateFraming();updateQuality();setBusy();draw();
 try{await refreshProjects();const draft=await getProject('draft');if(draft?.tracks?.length){await restore(draft);$('saveState').textContent='Dernier brouillon restauré depuis cet appareil.'}else $('saveState').textContent='Sauvegarde automatique locale prête.'}catch(e){$('saveState').textContent='Stockage local indisponible : les projets resteront dans cette session. '+e.message}
 finally{restoring=false;setBusy();list()}
+
+// Flush pending edits before leaving the studio; keep the page open if saving fails.
+for(const link of document.querySelectorAll('[data-player-link]'))link.addEventListener('click',async event=>{
+ if(event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+ event.preventDefault();
+ if(exporting||loading||restoring){status('Attendez la fin du chargement ou de l’export avant de changer de page.');return}
+ clearTimeout(draftTimer);
+ try{await queueWrite(snapshot('draft',$('projectName').value.trim()||'Mon montage'));$('saveState').textContent='Brouillon sauvegardé.';location.href=link.href}
+ catch{status('Sauvegarde impossible : restez dans le studio pour conserver votre travail.')}
+});

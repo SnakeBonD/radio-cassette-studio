@@ -1,0 +1,19 @@
+/* Shared banner for Radio, Cassette and Studio. */
+.site-header{box-sizing:border-box;width:100%;height:116px;min-height:116px;margin:0;padding:10px 5vw;display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:16px;background:#101112;border-bottom:1px solid #303132;font-family:system-ui,sans-serif;letter-spacing:0;flex-shrink:0}
+.site-header .site-brand{display:flex;align-items:center;gap:18px;min-width:0;text-decoration:none;color:#ece5d8}
+.site-header .site-brand img{display:block;width:96px;height:96px;object-fit:contain;border-radius:8px}
+.site-header .site-brand span{font-size:21px;font-weight:400;letter-spacing:3px;white-space:nowrap}
+.site-header .site-brand small{display:block;margin:6px 0 0;font-size:9px;font-weight:400;letter-spacing:3px;color:#97938b}
+.site-header .site-nav{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.site-header .site-nav a,.site-header .site-nav button{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;margin:0;padding:12px 18px;min-height:43px;border:1px solid #51504c;border-radius:6px;background:#242526;color:#eee2d2;text-decoration:none;font:400 13px/17px system-ui,sans-serif;letter-spacing:0;cursor:pointer}
+.site-header .site-nav [aria-current=page],.site-header .site-nav [aria-pressed=true]{background:#b52922;border-color:#fb7668;color:white}
+.site-header .site-nav a:hover,.site-header .site-nav button:hover{border-color:#ffb449}
+.site-header a:focus-visible,.site-header button:focus-visible{outline:2px solid #ffce77;outline-offset:3px}
+body.radiocassette-page{padding:0}.radiocassette-page main{margin-top:0;padding:24px 24px 0;box-sizing:border-box}
+@media(max-width:650px){
+ .site-header{height:76px;min-height:76px;padding:10px 8px;gap:8px}
+ .site-header .site-brand{gap:6px}.site-header .site-brand img{width:36px;height:36px}
+ .site-header .site-brand span{font-size:12px;letter-spacing:0}.site-header .site-brand small{font-size:6px;letter-spacing:.5px;margin-top:4px}
+ .site-header .site-nav{gap:2px}.site-header .site-nav a,.site-header .site-nav button{font-size:9px;line-height:12px;padding:10px 5px;min-height:34px}
+ .radiocassette-page main{padding:12px 6px 0}
+}

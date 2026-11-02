@@ -7,3 +7,13 @@ header{height:116px}.brand{display:flex;align-items:center;gap:18px;color:#ece5d
 h2{font-size:19px;font-weight:500;letter-spacing:.3px}.project-panel,.jukebox{border-top:1px solid #343434;margin:26px 0;padding-top:12px}.project-panel{padding:18px;background:#191a1b;border:1px solid #343434;border-radius:10px}.check{display:flex;align-items:center;gap:9px;line-height:1.5}.check input{width:16px;height:16px;margin:0;accent-color:#efae55}.actions,.presets{display:flex;flex-wrap:wrap;gap:6px}.clip-duration{color:#ffc776;font-size:16px}.track-row{border:1px solid #393a3a;border-radius:8px;margin:10px 0;padding:10px}.track-row.active{border-color:#efae55;background:#26221b}.track-row .track-name{width:100%;text-align:left;line-height:1.5;margin:0 0 8px}.track-row .track-tools{display:flex;gap:5px}.track-tools button{font-size:12px;padding:6px 10px;margin:0}#library .track-tools button{width:auto}.track-missing{font-size:12px;color:#ffc776}#videoPreview{display:block;width:100%;max-height:560px;background:#050505;border-radius:10px}#videoResult{margin-top:24px}input[aria-invalid=true]{border-color:#ff8d75}section[hidden],label[hidden]{display:none}.project-panel button{font-size:12px}.project-panel .hint{margin:10px 0}.jukebox button[aria-pressed=true]{border-color:#efae55;color:#efae55}
 
 #coverSource{color:#ddb775}
+
+.studio-nav{display:flex;gap:4px;letter-spacing:0;flex-shrink:0}.studio-nav a{color:#eee2d2;text-decoration:none;border:1px solid #51504c;border-radius:6px;padding:12px 18px;font-size:13px;background:#242526}.studio-nav a[aria-current=page]{background:#b52922;border-color:#fb7668;color:white}.studio-nav a:focus-visible{outline:2px solid #ffce77;outline-offset:3px}.studio-nav a:hover{border-color:#ffb449}
+@media(max-width:650px){header{height:auto;min-height:100px;flex-wrap:wrap;gap:14px;padding:12px 20px}.studio-nav{width:100%}.studio-nav a{flex:1;text-align:center;padding:11px 8px}}
+
+/* Keep the brand and navigation aligned in one header row, including mobile. */
+@media(max-width:650px){
+ header{flex-wrap:nowrap;gap:8px;min-height:76px;padding:10px 8px;letter-spacing:0}
+ .brand{gap:6px;min-width:0}.brand img{width:36px;height:36px}.brand-name{font-size:12px}.brand small{font-size:6px;letter-spacing:.5px;margin-top:4px}
+ .studio-nav{width:auto;gap:2px}.studio-nav a{flex:none;font-size:9px;padding:10px 5px}
+}
