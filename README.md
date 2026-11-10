@@ -13,8 +13,8 @@ npm test
 npm start
 ```
 
-- Radio et Cassette : http://127.0.0.1:4173/radiocassette.html
-- Studio : http://127.0.0.1:4173/
+- Radio et Cassette : http://127.0.0.1:4173/
+- Studio : http://127.0.0.1:4173/studio.html
 - Le menu commun permet de passer entre les trois modes. Le retour depuis le studio sauvegarde le brouillon et reprend ses pistes.
 
 ## Fonctionnalités

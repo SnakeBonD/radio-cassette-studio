@@ -3,6 +3,7 @@
   "framework": null,
   "buildCommand": "npm run build",
   "outputDirectory": "public",
+  "rewrites": [{"source": "/radiocassette.html", "destination": "/index.html"}],
   "functions": {
     "api/year.js": {"maxDuration": 30},
     "api/cover.js": {"maxDuration": 60}
