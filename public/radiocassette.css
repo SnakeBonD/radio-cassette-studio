@@ -30,3 +30,8 @@ body{background:#17191b;color:#e8e5de;padding:18px 24px}html{background:#17191b}
 
 .facade-logo{position:absolute;left:43.4%;top:17.55%;width:3.2%;height:4.2%;object-fit:contain;mix-blend-mode:screen;pointer-events:none}
 @media(max-width:700px){.facade-logo{left:43.1%;top:9.3%;width:4.9%;height:2.8%}}
+
+#radioSearch input { flex: 1; min-width: 0; }
+#radioSearch .screenbtn { flex: none; }
+#favFilter[aria-pressed="true"] { background: #d6ffad; color: #072f14; box-shadow: inset 0 0 0 1px #07571a; }
+#stationFavorite:disabled { opacity: .55; }
