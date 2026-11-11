@@ -20,12 +20,18 @@ body.radiocassette-page{padding:0}.radiocassette-page main{margin-top:0;padding:
 
 /* Crop the transparent margin above the handle. Size the complete silhouette
    against the viewport, using the same width for the artwork and controls. */
-.radiocassette-page { --banner-height: 116px; }
+.radiocassette-page { --banner-height: 116px; --handle-overlap: 16px; }
+.radiocassette-page main { margin-top: calc(-1 * var(--handle-overlap)); }
+.radiocassette-page .site-brand,
+.radiocassette-page .site-nav { position: relative; z-index: 1; }
 .radiocassette-page .radio-wrap {
+  background: transparent;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 45%));
   width: min(100%, 1200px, calc((100dvh - var(--banner-height)) * 1.46));
 }
 .radiocassette-page .radio { margin-top: -2.9167%; }
 @media (max-width: 700px) {
+  .radiocassette-page { --handle-overlap: 8px; }
   .radiocassette-page .radio-wrap {
     width: min(100%, 520px, calc((100dvh - var(--banner-height)) * .57));
   }
