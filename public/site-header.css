@@ -9,11 +9,28 @@
 .site-header .site-nav [aria-current=page],.site-header .site-nav [aria-pressed=true]{background:#b52922;border-color:#fb7668;color:white}
 .site-header .site-nav a:hover,.site-header .site-nav button:hover{border-color:#ffb449}
 .site-header a:focus-visible,.site-header button:focus-visible{outline:2px solid #ffce77;outline-offset:3px}
-body.radiocassette-page{padding:0}.radiocassette-page main{margin-top:0;padding:24px 24px 0;box-sizing:border-box}
+body.radiocassette-page{padding:0}.radiocassette-page main{margin-top:0;padding:0 24px;box-sizing:border-box}
 @media(max-width:650px){
  .site-header{height:76px;min-height:76px;padding:10px 8px;gap:8px}
  .site-header .site-brand{gap:6px}.site-header .site-brand img{width:36px;height:36px}
  .site-header .site-brand span{font-size:12px;letter-spacing:0}.site-header .site-brand small{font-size:6px;letter-spacing:.5px;margin-top:4px}
  .site-header .site-nav{gap:2px}.site-header .site-nav a,.site-header .site-nav button{font-size:9px;line-height:12px;padding:10px 5px;min-height:34px}
- .radiocassette-page main{padding:12px 6px 0}
+ .radiocassette-page main{padding:0 6px}
+}
+
+/* Crop the transparent margin above the handle. Size the complete silhouette
+   against the viewport, using the same width for the artwork and controls. */
+.radiocassette-page { --banner-height: 116px; }
+.radiocassette-page .radio-wrap {
+  width: min(100%, 1200px, calc((100dvh - var(--banner-height)) * 1.46));
+}
+.radiocassette-page .radio { margin-top: -2.9167%; }
+@media (max-width: 700px) {
+  .radiocassette-page .radio-wrap {
+    width: min(100%, 520px, calc((100dvh - var(--banner-height)) * .57));
+  }
+  .radiocassette-page .radio { margin-top: -1.9444%; }
+}
+@media (max-width: 650px) {
+  .radiocassette-page { --banner-height: 76px; }
 }
