@@ -45,3 +45,6 @@ body{background:#17191b;color:#e8e5de;padding:18px 24px}html{background:#17191b}
 .tapeOptions .tape-toggle input{margin:0;accent-color:#edac53}
 
 .now-playing{font-size:12px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;color:#073516}
+
+.undo-notice{display:flex;align-items:center;gap:6px;font-size:11px;flex-shrink:0}.undo-notice span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.undo-notice button{flex-shrink:0}#retryRadio{align-self:flex-start;flex-shrink:0;margin:3px 0}
+.undo-notice .screenbtn,#retryRadio{min-height:28px;padding:4px 8px;font-size:11px}

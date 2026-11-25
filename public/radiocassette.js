@@ -7,17 +7,18 @@ import {appearance,THEMES} from './themes.js';
 import {time} from './audio-utils.js';
 const $=id=>document.getElementById(id),audio=$('audio'),status=text=>$('status').textContent=text;
 let mode='radio',tracks=[],active=-1,stations=[],selected=null,favorites=[],onlyFavorites=false,sourceURL='',ticket=0,importing=false,images=null,saveQueue=Promise.resolve();
+let removedTracks=[],radioTimer=null,radioAttempt=false,radioWasPlaying=false;
 let visited=[],metadataTimer=null,metadataController=null,metadataGeneration=0;
 const APIS=['https://de1.api.radio-browser.info/json','https://nl1.api.radio-browser.info/json','https://at1.api.radio-browser.info/json'];
 try{const data=JSON.parse(localStorage.getItem('retro-radio-favorites')||'[]');if(Array.isArray(data))favorites=data}catch{}
 const key=s=>s.stationuuid||s.url_resolved||s.url;
 const blobImage=blob=>new Promise((resolve,reject)=>{if(!blob)return resolve(null);const url=URL.createObjectURL(blob),img=new Image();img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};img.onerror=()=>{URL.revokeObjectURL(url);reject(Error('Pochette illisible'))};img.src=url});
-function release(){clearTimeout(metadataTimer);metadataController?.abort();$('nowPlaying').hidden=true;$('nowPlaying').textContent='';ticket++;audio.pause();audio.removeAttribute('src');audio.load();if(sourceURL)URL.revokeObjectURL(sourceURL);sourceURL='';}
+function release(){radioAttempt=false;radioWasPlaying=false;clearTimeout(radioTimer);$('retryRadio').hidden=true;clearTimeout(metadataTimer);metadataController?.abort();$('nowPlaying').hidden=true;$('nowPlaying').textContent='';ticket++;audio.pause();audio.removeAttribute('src');audio.load();if(sourceURL)URL.revokeObjectURL(sourceURL);sourceURL='';}
 function record(id='radiocassette'){return {id,name:'Radiocassette',version:1,updatedAt:Date.now(),active,options:{keepAudio:true,volume:audio.volume,scope:'full',shuffle:$('tapeShuffle').checked,repeat:$('tapeRepeat').checked},tracks:tracks.map(({cover,...track})=>track)}}
 function save(){const snapshot=record();saveQueue=saveQueue.catch(()=>{}).then(()=>putProject(snapshot)).then(()=>{$('storageNote').textContent='Bibliothèque sauvegardée sur cet appareil.'}).catch(()=>{$('storageNote').textContent='Sauvegarde indisponible : gardez cet onglet ouvert.'});return saveQueue}
-function reflect(){const tape=mode==='tape';$('radioMode').setAttribute('aria-pressed',String(!tape));$('tapeMode').setAttribute('aria-pressed',String(tape));$('radioSearch').hidden=tape;$('tapeActions').hidden=!tape;$('tapeSeek').hidden=!tape;$('tapeOptions').hidden=!tape;$('tapeBay').hidden=!tape;$('sourceName').textContent=tape?'● CASSETTE':'● INTERNET RADIO';$('sourceType').textContent=tape?'STEREO • LOCAL':'STEREO • LIVE';$('modeNote').textContent=tape?'REC → studio de montage et export 9:16':'Les flux dépendent des stations et de votre connexion.';const track=tracks[active];$('station').textContent=tape?(track?.title||'Votre collection'):(selected?.name||'Choisir une radio');$('meta').textContent=tape?(track?.artist||'Importez vos fichiers audio'):(selected?.country||'Internet Radio');if(tape&&track){const s=appearance(track.style);$('tapeBody').value=s.body==='eighties'?'eighties':'original';$('tapeTheme').value=s.theme;$('tapeAccent').value=s.accent}render()}
+function reflect(){const tape=mode==='tape';$('undoNotice').hidden=!tape||!removedTracks.length;$('radioMode').setAttribute('aria-pressed',String(!tape));$('tapeMode').setAttribute('aria-pressed',String(tape));$('radioSearch').hidden=tape;$('tapeActions').hidden=!tape;$('tapeSeek').hidden=!tape;$('tapeOptions').hidden=!tape;$('tapeBay').hidden=!tape;$('sourceName').textContent=tape?'● CASSETTE':'● INTERNET RADIO';$('sourceType').textContent=tape?'STEREO • LOCAL':'STEREO • LIVE';$('modeNote').textContent=tape?'REC → studio de montage et export 9:16':'Les flux dépendent des stations et de votre connexion.';const track=tracks[active];$('station').textContent=tape?(track?.title||'Votre collection'):(selected?.name||'Choisir une radio');$('meta').textContent=tape?(track?.artist||'Importez vos fichiers audio'):(selected?.country||'Internet Radio');if(tape&&track){const s=appearance(track.style);$('tapeBody').value=s.body==='eighties'?'eighties':'original';$('tapeTheme').value=s.theme;$('tapeAccent').value=s.accent}render()}
 function setMode(next){if(mode===next)return;release();mode=next;reflect();status(next==='tape'?'Choisissez une cassette.':'Choisissez une station.');if(next==='tape'&&active>=0)selectTape(active,false)}
-function render(){updateFavoriteControls();const root=$('results');root.replaceChildren();const list=mode==='tape'?tracks:onlyFavorites?favorites:stations;list.forEach((entry,index)=>{const button=document.createElement('button');button.textContent=mode==='tape'?`${index+1}. ${entry.artist||'Artiste'} — ${entry.title||'Piste'}${!entry.file&&!entry.path?' · audio manquant':''}`:`${entry.name} · ${entry.country||''}`;button.setAttribute('aria-current',String(mode==='tape'?index===active:selected&&key(entry)===key(selected)));button.onclick=()=>mode==='tape'?selectTape(index,true):selectRadio(entry);if(mode==='tape'){
+function render(){$('undoRemove').disabled=importing;updateFavoriteControls();const root=$('results');root.replaceChildren();const list=mode==='tape'?tracks:onlyFavorites?favorites:stations;list.forEach((entry,index)=>{const button=document.createElement('button');button.textContent=mode==='tape'?`${index+1}. ${entry.artist||'Artiste'} — ${entry.title||'Piste'}${!entry.file&&!entry.path?' · audio manquant':''}`:`${entry.name} · ${entry.country||''}`;button.setAttribute('aria-current',String(mode==='tape'?index===active:selected&&key(entry)===key(selected)));button.onclick=()=>mode==='tape'?selectTape(index,true):selectRadio(entry);if(mode==='tape'){
  const row=document.createElement('div');row.className='tape-row';row.append(button);
  const tools=document.createElement('div');tools.className='tape-row-tools';
  for(const [label,symbol,action,disabled] of [
@@ -27,17 +28,35 @@ function render(){updateFavoriteControls();const root=$('results');root.replaceC
  ]){const tool=document.createElement('button');tool.textContent=symbol;tool.setAttribute('aria-label',label+' : '+(entry.title||'Piste'));tool.title=label;tool.disabled=disabled||importing;tool.onclick=action;tools.append(tool)}
  row.append(tools);root.append(row);
  }else root.append(button)});if(!list.length)root.textContent=mode==='tape'?'Importez des audios ou ouvrez le projet du studio.':onlyFavorites?'Aucune station favorite.':'Recherchez une station.';}
-async function start(){if(mode==='radio'){if(!selected)return status('Choisissez une station.');const src=selected.url_resolved||selected.url;if(!/^https:\/\//i.test(src||''))return status('Ce flux ne propose pas de connexion HTTPS.');if(audio.src!==src){release();audio.src=src}}else{if(active<0)return status('Choisissez une cassette.');if(!audio.getAttribute('src'))return selectTape(active,true)}const request=ticket;try{status('Connexion…');await audio.play();if(request!==ticket)return}catch{if(request===ticket)status('Lecture indisponible. Réessayez ou choisissez une autre piste.')}}
+async function start(){if(mode==='radio'){if(!selected)return status('Choisissez une station.');const src=selected.url_resolved||selected.url;if(!/^https:\/\//i.test(src||''))return status('Ce flux ne propose pas de connexion HTTPS.');if(audio.src!==src){release();audio.src=src}}else{if(active<0)return status('Choisissez une cassette.');if(!audio.getAttribute('src'))return selectTape(active,true)}const request=ticket;if(mode==='radio'){radioAttempt=true;radioMessage('Connexion en cours…');armRadioTimeout();}try{if(mode!=='radio')status('Chargement de la cassette…');await audio.play();if(request!==ticket)return}catch(error){if(request===ticket){if(mode==='radio')radioFailure(error.name==='NotAllowedError'?'Cliquez sur Réessayer pour lancer la radio.':undefined);else status('Lecture indisponible. Réessayez ou choisissez une autre piste.')}}}
 function selectRadio(entry){release();selected=entry;reflect();start()}
 async function selectTape(index,autoplay=false,continuing=false){release();active=index;if(!continuing)visited=[];if(tracks[index])visited.push(tracks[index].id);const track=tracks[index],request=ticket;reflect();if(!track)return;if(!track.file&&!track.path){status('Audio manquant : ouvrez le studio pour resélectionner le fichier.');return}try{if(track.coverBlob&&!track.cover)track.cover=await blobImage(track.coverBlob);if(request!==ticket||mode!=='tape')return;sourceURL=track.file?URL.createObjectURL(track.file):'';audio.src=sourceURL||track.path;status('Cassette prête.');save();if(autoplay)await start()}catch{if(request===ticket)status('Impossible de charger cette cassette.')}}
 async function editTrack(index,to){
  if(importing)return;
+ if(to===null&&tracks[index]){removedTracks.push({track:tracks[index],index});$('undoText').textContent='Morceau retiré : '+(tracks[index].title||'Piste');}
  const changed=to===null?removeTrack(tracks,active,index):reorderTrack(tracks,active,index,to);
  const removedActive=to===null&&index===active,wasPlaying=!audio.paused;
  tracks=changed.tracks;active=changed.active;
  if(removedActive){release();if(active>=0)await selectTape(active,wasPlaying);else status('Playlist vide. Importez vos morceaux.');}
  reflect();await save();
 }
+$('undoRemove').onclick=async()=>{
+ if(importing||!removedTracks.length)return;
+ const {track,index}=removedTracks.pop(),current=tracks[active];
+ tracks.splice(Math.min(index,tracks.length),0,track);
+ if(current)active=tracks.indexOf(current);else if(mode==='tape')await selectTape(tracks.indexOf(track),false);else active=tracks.indexOf(track);
+ $('undoText').textContent=removedTracks.length?'Morceau retiré : '+(removedTracks.at(-1).track.title||'Piste'):'';
+ reflect();await save();
+};
+function radioMessage(message,retry=false){status(message);$('retryRadio').hidden=!retry;$('nowPlaying').hidden=true;}
+function armRadioTimeout(){clearTimeout(radioTimer);const request=ticket;radioTimer=setTimeout(()=>{if(request===ticket&&mode==='radio'&&radioAttempt)radioFailure();},15000);}
+function radioFailure(message){
+ if(mode!=='radio'||!radioAttempt)return;
+ const interrupted=radioWasPlaying;release();radioMessage(message||(navigator.onLine===false?'Connexion Internet perdue.':interrupted?'Flux interrompu.':'Station indisponible.'),true);
+}
+$('retryRadio').onclick=()=>{if(mode==='radio'&&selected){release();start();}};
+for(const event of ['waiting','stalled'])audio.addEventListener(event,()=>{if(mode==='radio'&&radioAttempt){radioMessage(radioWasPlaying?'Flux interrompu · reconnexion…':'Connexion en cours…',true);armRadioTimeout();}});
+window.addEventListener('offline',()=>{if(mode==='radio'&&radioAttempt)radioFailure('Connexion Internet perdue.');});
 function advanceTape(){
  const options={shuffle:$('tapeShuffle').checked,repeat:$('tapeRepeat').checked,visited};
  let next=nextTape(tracks,active,options);
@@ -94,13 +113,13 @@ $('stationFavorite').onclick = () => {
  }
  render();
 };
-$('play').onclick=start;$('pause').onclick=()=>{if(audio.paused)start();else{audio.pause();status('En pause.')}};$('stop').onclick=()=>{release();status('Lecture arrêtée.')};$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('mute').onclick=()=>audio.muted=!audio.muted;
+$('play').onclick=start;$('pause').onclick=()=>{if(audio.paused)start();else{radioAttempt=false;clearTimeout(radioTimer);$('retryRadio').hidden=true;audio.pause();status('En pause.')}};$('stop').onclick=()=>{release();status('Lecture arrêtée.')};$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('mute').onclick=()=>audio.muted=!audio.muted;
 $('tapeFiles').onchange=e=>importFiles([...e.target.files]);
-$('reloadLibrary').onclick=async()=>{if(importing)return;try{const project=await getProject('draft');if(!project?.tracks?.length)return status('Aucune piste dans le projet courant du studio.');release();tracks=project.tracks.map(t=>({...t,path:null}));await selectTape(Math.min(project.active||0,tracks.length-1));status('Projet du studio chargé.')}catch{status('Projet local indisponible.')}};
+$('reloadLibrary').onclick=async()=>{if(importing)return;try{const project=await getProject('draft');if(!project?.tracks?.length)return status('Aucune piste dans le projet courant du studio.');release();removedTracks=[];tracks=project.tracks.map(t=>({...t,path:null}));await selectTape(Math.min(project.active||0,tracks.length-1));status('Projet du studio chargé.')}catch{status('Projet local indisponible.')}};
 $('seekTape').oninput=()=>{if(mode==='tape'&&Number.isFinite(audio.duration))audio.currentTime=+$('seekTape').value/100*audio.duration};
 for(const [key,finish] of Object.entries(ORIGINAL_FINISHES))$('tapeTheme').append(new Option(finish.name,key));
 for(const id of ['tapeBody','tapeTheme','tapeAccent'])$(id).onchange=()=>{const track=tracks[active];if(!track)return;if(id==='tapeTheme')$('tapeAccent').value=THEMES[$('tapeTheme').value].accent;track.style=appearance({body:$('tapeBody').value,theme:$('tapeTheme').value,accent:$('tapeAccent').value});save()};
-audio.onplaying=()=>status(mode==='radio'?'● EN DIRECT':'● LECTURE CASSETTE');audio.onerror=()=>status(mode==='radio'?'Flux inaccessible. Essayez une autre station.':'Audio illisible.');audio.onended=()=>{if(mode==='tape')advanceTape()};audio.onloadedmetadata=()=>{if(mode==='tape'&&tracks[active]&&Number.isFinite(audio.duration)){tracks[active].duration=audio.duration;save()}};audio.volume=.7;
+audio.onplaying=()=>{clearTimeout(radioTimer);if(mode==='radio'){radioAttempt=true;radioWasPlaying=true;$('retryRadio').hidden=true;}status(mode==='radio'?'● EN DIRECT':'● LECTURE CASSETTE');};audio.onerror=()=>{if(mode==='radio')radioFailure();else status('Audio illisible.');};audio.onended=()=>{if(mode==='tape')advanceTape();else radioFailure('Flux interrompu.');};audio.onloadedmetadata=()=>{if(mode==='tape'&&tracks[active]&&Number.isFinite(audio.duration)){tracks[active].duration=audio.duration;save()}};audio.volume=.7;
 const canvas=$('tapeCanvas'),g=canvas.getContext('2d');
 function draw(){if(images){const track=tracks[active],style=appearance(track?.style);g.save();g.translate(-31,-370);drawBody(g,images,style.body==='eighties'?'eighties':'original',track?.cover,track?.artist||'SnakeBonD',track?.title||'Votre musique sur bande',mode==='tape'?audio.currentTime||0:0,mode==='tape'&&Number.isFinite(audio.duration)?audio.duration:track?.duration||0,style.accent,style.theme,track?.year);g.restore();$('seekTape').value=Number.isFinite(audio.duration)&&audio.duration?audio.currentTime/audio.duration*100:0;$('tapeTime').textContent=time(audio.currentTime||0)+' / '+time(Number.isFinite(audio.duration)?audio.duration:track?.duration||0)}requestAnimationFrame(draw)}
 try{images=await loadBodyImages()}catch{status('Images de cassette indisponibles.')}draw();stations=[...RADIO_PRESETS];
