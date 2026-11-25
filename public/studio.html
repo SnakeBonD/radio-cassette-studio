@@ -62,6 +62,7 @@
 </div>
 <label>Année de la chanson<input id="year" type="text" inputmode="numeric" maxlength="4" placeholder="Année inconnue">
 </label>
+<details class="advanced-panel"><summary>Compléter les informations et la pochette</summary>
 <button id="findYear">Rechercher l’année en ligne</button>
 <p id="yearNote" class="hint">Tag YEAR prioritaire ; sinon recherche par artiste et titre sur MusicBrainz. Aucun audio envoyé.</p>
 <a id="yearSource" target="_blank" rel="noopener" hidden>Source de l’année</a>
@@ -74,6 +75,8 @@
 <p id="coverProgress" class="hint" role="status"></p>
 <label>Cover carrée · recadrage centré<input id="coverFile" type="file" accept="image/png,image/jpeg,image/webp">
 </label>
+</details>
+<details class="advanced-panel"><summary>Personnaliser la cassette</summary>
 <label>Corps de cassette<select id="body">
 </select>
 </label>
@@ -95,6 +98,7 @@
 <label>Image de cassette complète · facultative<input id="cassetteFile" type="file" accept="image/png,image/jpeg,image/webp">
 </label>
 <button id="resetCassette">Revenir à la cassette du modèle</button>
+</details>
 <legend>02 / Le montage</legend>
 <div id="trimEditor" class="trim-editor" aria-label="Sélection de l’extrait">
 <canvas id="trimWave" width="800" height="120" aria-label="Forme d’onde de la chanson"></canvas>
@@ -118,6 +122,7 @@
 <button id="fullTrack" type="button" disabled>Chanson entière</button>
 <p class="hint" id="duration">Chargez une piste pour commencer.</p>
 <p id="clipDuration" class="clip-duration" role="status">Durée du montage : —</p>
+<details class="advanced-panel"><summary>Fondus audio</summary>
 <div class="pair">
 <label>Fondu d’entrée (s)<input id="fadeIn" type="number" min="0" max="30" step="0.1" value="0">
 </label>
@@ -125,12 +130,14 @@
 </label>
 </div>
 <p class="hint">0 = désactivé. Les fondus s’entendent à l’écoute et dans la vidéo. Sur un extrait court, leur durée est réduite proportionnellement.</p>
+</details>
 <label>Volume d’écoute<input id="volume" type="range" min="0" max="1" step="0.01" value="0.7">
 </label>
 <button id="play" disabled>▶ Écouter l’extrait</button>
 <input id="seek" aria-label="Position de lecture" type="range" min="0" max="1" step="0.01" value="0" disabled>
 <legend>03 / La vidéo</legend>
 <label>Format de sortie<select id="videoFormat"><option value="portrait">Portrait · 9:16</option><option value="square">Carré · 1:1</option><option value="landscape">Paysage · 16:9</option></select></label>
+<details class="advanced-panel"><summary>Cadrage et qualité vidéo</summary>
 <label>Cadrage du lecteur<select id="framing">
 <option value="full" selected>Plein cadre · sans marges</option>
 <option value="safe">Avec marges de sécurité</option>
@@ -141,11 +148,14 @@
 <option value="high" selected>Haute · 1080p</option>
 </select>
 </label>
+</details>
 <p class="hint" id="qualityNote">1080 × 1920 · 30 images/s · audio inclus</p>
 <p class="hint">Export en temps réel. Gardez cet onglet visible. Le volume d’écoute ne modifie pas celui de la vidéo.</p>
-<button id="batchExport" type="button">Exporter les pistes cochées</button><p class="hint" id="batchStatus" role="status">Cochez les pistes dans le jukebox. Chaque vidéo conserve les réglages de sa piste. Gardez cet onglet visible pendant toute la série.</p><div id="batchResults"></div>
 <button id="export" class="primary" disabled>Créer la vidéo</button>
 <button id="still">Enregistrer une image PNG</button>
+<details class="advanced-panel" id="batchPanel"><summary>Exporter plusieurs vidéos</summary>
+<button id="batchExport" type="button">Exporter les pistes cochées</button><p class="hint" id="batchStatus" role="status">Cochez les pistes dans le jukebox. Chaque vidéo conserve les réglages de sa piste. Gardez cet onglet visible pendant toute la série.</p><div id="batchResults"></div>
+<button id="downloadZip" type="button" hidden>Télécharger toutes les vidéos (ZIP)</button><p id="zipStatus" role="status" class="hint"></p></details>
 </fieldset>
 <button id="batchCancel" type="button" hidden>Arrêter la série</button><button id="cancel" hidden>Annuler l’export</button>
 <p id="status" role="status">Studio prêt. Fichiers traités sur cet appareil.</p>
