@@ -23,23 +23,38 @@ export function composeVideo(target,source,format,cover,artist,title,accent) {
   const artSize=Math.min(leftW,h*.57),x=pad+(leftW-artSize)/2,y=(h-artSize)*.22;
   if(cover){const side=Math.min(cover.width,cover.height);g.drawImage(cover,(cover.width-side)/2,(cover.height-side)/2,side,side,x,y,artSize,artSize);}
   else {g.fillStyle=accent||'#602b3e';g.fillRect(x,y,artSize,artSize);g.fillStyle='#fff4d6';g.font=`${artSize*.35}px Georgia`;g.textAlign='center';g.fillText('♫',x+artSize/2,y+artSize*.61);}
-  g.textAlign='center';g.fillStyle='#141414';
-  function label(value,top,font){g.font=`${font}px system-ui`;while(g.measureText(value).width>leftW&&font>13){font--;g.font=`${font}px system-ui`;}g.fillText(value,pad+leftW/2,top,leftW);}
-  label(artist||'SnakeBonD',y+artSize+h*.075,h*.038);
-  g.fillStyle='#1b1b1b';
-  let font=h*.028,lines=[];
+  const center=pad+leftW/2,textWidth=Math.min(leftW,artSize);
+  g.textAlign='center';
+  function linesFor(value,size,face,maxLines=2){
+    let lines;
+    do {
+      g.font=`${size}px ${face}`;lines=[''];
+      for(const word of value.split(/\s+/)){
+        const last=lines.length-1,candidate=lines[last]?lines[last]+' '+word:word;
+        if(g.measureText(candidate).width>textWidth&&lines[last])lines.push(word);else lines[last]=candidate;
+      }
+      if(lines.length<=maxLines||size<=13)break;
+      size--;
+    }while(true);
+    return {lines,size};
+  }
+  // A record-sleeve hierarchy: artist, song title, then edition information.
+  g.fillStyle='#202226';g.letterSpacing='2px';
+  const artistLabel=linesFor((artist||'SnakeBonD').toLocaleUpperCase(),h*.022,'system-ui');
+  let baseline=y+artSize+h*.060;
+  artistLabel.lines.forEach(line=>{g.fillText(line,center,baseline,textWidth);baseline+=artistLabel.size*1.3;});
+  g.letterSpacing='0px';
   const value=title||'Votre musique sur bande';
-  do {
-    g.font=`${font}px system-ui`;lines=[''];
-    for(const word of value.split(/\s+/)){
-      const last=lines.length-1,candidate=lines[last]?lines[last]+' '+word:word;
-      if(g.measureText(candidate).width>leftW&&lines[last])lines.push(word);else lines[last]=candidate;
-    }
-    if(lines.length<=2)break;
-    font--;
-  }while(font>16);
-  lines=lines.slice(0,2);
-  const titleTop=y+artSize+h*.125,lineHeight=font*1.4;
-  lines.forEach((line,i)=>g.fillText(line,pad+leftW/2,titleTop+i*lineHeight,leftW));
-  g.fillStyle=accent||'#edac53';g.fillRect(pad+leftW*.3,titleTop+(lines.length-1)*lineHeight+h*.045,leftW*.4,3);
+  const edition=value.match(/\s*\(([^()]*(?:edit|mix|version|remaster|live|instrumental)[^()]*)\)\s*$/i);
+  const mainTitle=edition?value.slice(0,edition.index).trim()||value:value;
+  const heading=linesFor(mainTitle,h*.039,'Georgia');
+  g.fillStyle='#111315';baseline+=h*.019;
+  heading.lines.forEach(line=>{g.fillText(line,center,baseline,textWidth);baseline+=heading.size*1.22;});
+  if(edition){
+    const subtitle=linesFor(edition[1],h*.021,'system-ui');
+    g.fillStyle='#292c30';baseline+=h*.004;
+    subtitle.lines.forEach(line=>{g.fillText(line,center,baseline,textWidth);baseline+=subtitle.size*1.3;});
+  }
+  const ruleWidth=Math.min(artSize*.22,100);
+  g.fillStyle=accent||'#edac53';g.fillRect(center-ruleWidth/2,baseline+h*.012,ruleWidth,3);
 }
