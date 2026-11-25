@@ -2,6 +2,7 @@ import {build} from 'esbuild';
 import {readdir,readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 await build({entryPoints:['src/metadata.js'],outfile:'public/metadata.js',bundle:true,format:'esm',platform:'browser',minify:true,legalComments:'linked'});
+await build({entryPoints:['src/offline-export.js'],outfile:'public/offline-export.js',bundle:true,format:'esm',platform:'browser',minify:true,legalComments:'linked'});
 const logo=await readFile('public/assets/brand/snakebond-logo.png');
 await writeFile('public/app-icon.svg',`<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><image width="512" height="512" href="data:image/png;base64,${logo.toString('base64')}"/></svg>`);
 const assets=[];const hash=createHash('sha256');
