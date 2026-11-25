@@ -1,3 +1,4 @@
+import {bindPlaybackKeys} from './shortcuts.js';
 import {levelGain} from './volume-level.js';
 import {playbackMemory,resumePosition} from './playback-memory.js';
 import {mediaControls} from './media-controls.js';
@@ -152,3 +153,5 @@ audio.addEventListener('timeupdate',()=>{media.position(mode==='tape'?audio.dura
 audio.addEventListener('pause',checkpoint);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)checkpoint();});
 window.addEventListener('pagehide',release);
+
+bindPlaybackKeys(document,{enabled:()=>!importing,toggle:()=>audio.paused?start():pausePlayback(),canSeek:()=>mode==='tape'&&!!loadedTrack&&Number.isFinite(audio.duration),seek:delta=>seekPlayback(audio.currentTime+delta)});

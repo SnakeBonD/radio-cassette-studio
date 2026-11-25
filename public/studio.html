@@ -2,7 +2,7 @@
 <html lang="fr">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="manifest" href="/manifest.webmanifest"><script type="module" src="/pwa.js"></script><title>SnakeBonD — Radio Cassette Studio</title>
+<link rel="manifest" href="/manifest.webmanifest"><script type="module" src="/pwa.js"></script><script type="module" src="/help.js"></script><title>SnakeBonD — Radio Cassette Studio</title>
 <link rel="icon" href="/favicon.ico?v=1" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=1">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=1">
@@ -48,6 +48,7 @@
 <label>Ouvrir un fichier de projet<input id="importProjectFile" type="file" accept=".rcstudio" aria-describedby="projectFileHelp"></label>
 <p id="projectFileHelp" class="hint">Le fichier .rcstudio contient les morceaux disponibles, les pochettes et les réglages. Vous pouvez le conserver ou l’ouvrir sur un autre appareil.</p>
 <p id="projectFileStatus" class="hint" role="status"></p>
+<details id="storagePanel" class="advanced-panel"><summary>Espace de stockage</summary><p id="storageTotal" class="hint"></p><p id="storageEstimate" class="hint"></p><div id="storageProjects"></div><button id="storageRefresh" type="button">Actualiser</button><button id="storageDelete" type="button">Supprimer les projets cochés</button><p id="storageMessage" class="hint" role="status"></p><p class="hint">Le brouillon ouvert et la bibliothèque cassette sont protégés ici. Retirez leurs morceaux depuis le jukebox ou le lecteur pour les alléger.</p></details>
 <p id="saveState" class="hint" role="status">Chargement des sauvegardes…</p>
 </details>
 <fieldset id="fields" hidden>

@@ -1,3 +1,5 @@
+import {bindPlaybackKeys} from './shortcuts.js';
+import {storagePanel} from './storage-panel.js';
 import {videoZip} from './video-zip.js';
 import {videoDimensions,composeVideo} from './video-layout.js';
 import {encodeProjectFile,decodeProjectFile,projectFilename} from './project-file.js';
@@ -304,6 +306,8 @@ $('batchCancel').onclick=()=>{batchCancelled=true;if(exporting)$('cancel').click
 $('videoPreview').onplay=()=>{if(exporting)$('videoPreview').pause();else stopJukebox()};
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&batchRunning){batchCancelled=true;if(exporting)$('cancel').click();status('Série interrompue : gardez cet onglet visible.')}else if(document.hidden&&exporting){$('cancel').click();status('Export annulé : gardez cet onglet visible pour préserver la vidéo.')}else if(document.hidden&&!restoring)saveDraft()});
 window.addEventListener('beforeunload',e=>{if(exporting||importing||batchRunning||zipBusy||$('saveState').textContent.startsWith('Modifications')){e.preventDefault();e.returnValue=''}});
+bindPlaybackKeys(document,{enabled:()=>!!buffer&&!exporting&&!loading&&!restoring&&!importing&&!batchRunning&&!zipBusy,toggle:()=>$('play').click(),seek:delta=>{const range=selection();$('seek').value=Math.max(range.start,Math.min(range.end,position()+delta));$('seek').dispatchEvent(new Event('input'));}});
+storagePanel(document,{isBusy:()=>exporting||loading||restoring||importing||batchRunning||zipBusy,beforeRefresh:async()=>{await saveDraft();await saveQueue;},onDeleted:async ids=>{if(ids.includes(projectId))projectId=null;await refreshProjects();}});
 updateFraming();updateQuality();setBusy();draw();
 try{await refreshProjects();const draft=await getProject('draft');if(draft?.tracks?.length){await restore(draft);$('saveState').textContent='Dernier brouillon restauré depuis cet appareil.'}else $('saveState').textContent='Sauvegarde automatique locale prête.'}catch(e){$('saveState').textContent='Stockage local indisponible : les projets resteront dans cette session. '+e.message}
 finally{restoring=false;setBusy();list()}

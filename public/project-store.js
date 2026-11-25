@@ -7,3 +7,5 @@ export const putProject=record=>transaction('readwrite',store=>store.put(record)
 export const getProject=async id=>withoutRetiredDemo(await transaction('readonly',store=>store.get(id)));
 export const allProjects=async ()=>(await transaction('readonly',store=>store.getAll())).map(withoutRetiredDemo);
 export const deleteProject=id=>transaction('readwrite',store=>store.delete(id));
+
+export const deleteSavedProjects=ids=>transaction('readwrite',store=>{let request;for(const id of ids){if(!['draft','radiocassette'].includes(id))request=store.delete(id);}return request||store.get('draft');});

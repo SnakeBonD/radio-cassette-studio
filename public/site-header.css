@@ -41,3 +41,5 @@ body.radiocassette-page{padding:0}.radiocassette-page main{margin-top:0;padding:
   .radiocassette-page { --banner-height: 76px; }
 }
 .pwa-panel{padding:16px 20px;display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;color:#b9b4aa;font:12px/1.5 system-ui;text-align:center}.pwa-panel button{background:#242628;color:#f5dfb7;border:1px solid #756141;border-radius:6px;padding:10px 14px;cursor:pointer}.pwa-panel [hidden]{display:none}
+
+.help-bar{text-align:center;padding:12px}.help-bar button,.help-dialog button{color:#f5dfb7;background:#242628;border:1px solid #756141;border-radius:7px;padding:10px 16px;font:14px system-ui;cursor:pointer}.help-dialog{box-sizing:border-box;width:min(620px,94vw);max-height:85dvh;overflow:auto;color:#ece5d8;background:#191a1b;border:1px solid #736044;border-radius:14px;padding:24px;font:14px/1.7 system-ui}.help-dialog::backdrop{background:#000b}.help-dialog h2{font-size:24px}.help-dialog h3{color:#edbc78}.help-close{float:right}.help-dialog kbd{padding:2px 5px;background:#303132;border-radius:3px}.help-dialog :focus-visible,.help-bar :focus-visible{outline:2px solid #ffbf68;outline-offset:3px}
