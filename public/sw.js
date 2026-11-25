@@ -1,0 +1,11 @@
+const CACHE='radio-cassette-d4a1c5ff29cf6e7c';
+const ASSETS=["/app-icon.svg","/app.js","/apple-touch-icon.png","/assets/brand/radio-logo.png","/assets/brand/snakebond-logo.png","/assets/cassettes/blue.png","/assets/cassettes/chrome.png","/assets/cassettes/clearblue.png","/assets/cassettes/metal.png","/assets/cassettes/original-v2.png","/assets/cassettes/original.png","/assets/cassettes/smoked.png","/assets/cassettes/vintage.png","/assets/cassettes/white.png","/assets/deck.png","/assets/radio/base.css","/assets/radio/controls.css","/assets/radio/controls.js","/assets/radio/facade-0.webp","/assets/radio/facade-1.webp","/assets/radio/radio-landscape-mask.svg","/assets/radio/radio-landscape-roomy.svg","/assets/radio/radio-portrait-mask.svg","/assets/radio/radio-portrait-tall.svg","/audio-utils.js","/cassette-bodies.js","/cassette-models.js","/cassettes.html","/favicon-16.png","/favicon-192.png","/favicon-32.png","/favicon-48.png","/favicon.ico","/framing.js","/index.html","/manifest.webmanifest","/metadata.js","/metadata.js.LEGAL.txt","/project-file.js","/project-migrations.js","/project-store.js","/pwa.js","/radio-presets.js","/radiocassette.css","/radiocassette.js","/site-header.css","/studio-settings.js","/studio.html","/style.css","/surfaces.js","/tape-mechanics.js","/tape-playlist.js","/themes.js","/trim-editor.js","/video-layout.js","/year-utils.js"];
+self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
+self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const name of await caches.keys())if(name.startsWith('radio-cassette-')&&name!==CACHE)await caches.delete(name);await self.clients.claim();})()));
+self.addEventListener('fetch',event=>{
+ const request=event.request,url=new URL(request.url);
+ if(request.method!=='GET'||url.origin!==self.location.origin||url.pathname.startsWith('/api/'))return;
+ const path=url.pathname==='/'||url.pathname==='/radiocassette.html'?'/index.html':url.pathname;
+ if(!ASSETS.includes(path))return;
+ event.respondWith(caches.open(CACHE).then(async cache=>(await cache.match(path))||fetch(request)));
+});

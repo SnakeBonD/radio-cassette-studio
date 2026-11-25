@@ -40,3 +40,4 @@ body.radiocassette-page{padding:0}.radiocassette-page main{margin-top:0;padding:
 @media (max-width: 650px) {
   .radiocassette-page { --banner-height: 76px; }
 }
+.pwa-panel{padding:16px 20px;display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;color:#b9b4aa;font:12px/1.5 system-ui;text-align:center}.pwa-panel button{background:#242628;color:#f5dfb7;border:1px solid #756141;border-radius:6px;padding:10px 14px;cursor:pointer}.pwa-panel [hidden]{display:none}

@@ -24,7 +24,7 @@ function cleanTrack(track) {
     duration:number(track.duration,0), path:null,
     config:{start:number(config.start,0),end:number(config.end,15),
       fadeIn:number(config.fadeIn,0,0,30),fadeOut:number(config.fadeOut,0,0,30),
-      framing:config.framing==='safe'?'safe':'full',quality:config.quality==='standard'?'standard':'high'}
+      videoFormat:['square','landscape'].includes(config.videoFormat)?config.videoFormat:'portrait',framing:config.framing==='safe'?'safe':'full',quality:config.quality==='standard'?'standard':'high'}
   };
 }
 

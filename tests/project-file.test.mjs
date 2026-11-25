@@ -5,7 +5,7 @@ import {encodeProjectFile,decodeProjectFile,projectFilename} from '../public/pro
 const sample=()=>({id:'existing-project',name:'Mes années 80',active:0,options:{keepAudio:false,volume:.4,scope:'clips',repeat:true},tracks:[{
   id:'existing-track',artist:'Artiste',title:'Titre',album:'Album',year:'1984',yearOrigin:'tag',tagsRead:true,
   style:{body:'eighties',theme:'cobalt',accent:'#123456'},
-  config:{start:12.5,end:60,fadeIn:1,fadeOut:2,framing:'safe',quality:'standard'},
+  config:{start:12.5,end:60,fadeIn:1,fadeOut:2,framing:'safe',quality:'standard',videoFormat:'landscape'},
   file:new File([new Uint8Array([0,255,127,64])],'chanson.mp3',{type:'audio/mpeg'}),
   fileName:'chanson.mp3',coverBlob:new Blob(['cover'],{type:'image/png'}),cassetteBlob:new Blob(['body'],{type:'image/webp'})
 }]});

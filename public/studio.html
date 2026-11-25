@@ -2,7 +2,7 @@
 <html lang="fr">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SnakeBonD — Radio Cassette Studio</title>
+<link rel="manifest" href="/manifest.webmanifest"><script type="module" src="/pwa.js"></script><title>SnakeBonD — Radio Cassette Studio</title>
 <link rel="icon" href="/favicon.ico?v=1" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=1">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=1">
@@ -130,14 +130,15 @@
 <button id="play" disabled>▶ Écouter l’extrait</button>
 <input id="seek" aria-label="Position de lecture" type="range" min="0" max="1" step="0.01" value="0" disabled>
 <legend>03 / La vidéo</legend>
-<label>Cadrage 9:16<select id="framing">
+<label>Format de sortie<select id="videoFormat"><option value="portrait">Portrait · 9:16</option><option value="square">Carré · 1:1</option><option value="landscape">Paysage · 16:9</option></select></label>
+<label>Cadrage du lecteur<select id="framing">
 <option value="full" selected>Plein cadre · sans marges</option>
 <option value="safe">Avec marges de sécurité</option>
 </select>
 </label>
 <label>Qualité vidéo<select id="quality">
-<option value="standard">Standard · 720 × 1280</option>
-<option value="high" selected>Haute · 1080 × 1920</option>
+<option value="standard">Standard · 720p</option>
+<option value="high" selected>Haute · 1080p</option>
 </select>
 </label>
 <p class="hint" id="qualityNote">1080 × 1920 · 30 images/s · audio inclus</p>
@@ -182,7 +183,7 @@
 </section>
 <section class="preview">
 <div class="preview-heading">
-<span>MASTER / 9:16</span>
+<span>MASTER / <span id="formatLabel">9:16</span></span>
 <span class="live">● APERÇU</span>
 </div>
 <canvas id="canvas" width="1080" height="1920" aria-label="Aperçu du lecteur cassette">

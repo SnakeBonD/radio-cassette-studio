@@ -48,3 +48,5 @@ body{background:#17191b;color:#e8e5de;padding:18px 24px}html{background:#17191b}
 
 .undo-notice{display:flex;align-items:center;gap:6px;font-size:11px;flex-shrink:0}.undo-notice span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.undo-notice button{flex-shrink:0}#retryRadio{align-self:flex-start;flex-shrink:0;margin:3px 0}
 .undo-notice .screenbtn,#retryRadio{min-height:28px;padding:4px 8px;font-size:11px}
+
+#playlistSearch{display:flex;align-items:center;gap:6px;flex-shrink:0;padding:3px 0}#trackSearch{min-width:0;width:50%;flex:1;background:#d0ffd4;border:1px solid #18752c;border-radius:4px;padding:4px;font:12px Arial}#playlistSummary{font:10px Arial;max-width:46%}
