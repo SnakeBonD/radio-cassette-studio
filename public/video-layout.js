@@ -44,17 +44,27 @@ export function composeVideo(target,source,format,cover,artist,title,accent) {
   let baseline=y+artSize+h*.060;
   artistLabel.lines.forEach(line=>{g.fillText(line,center,baseline,textWidth);baseline+=artistLabel.size*1.3;});
   g.letterSpacing='0px';
-  const value=title||'Votre musique sur bande';
-  const edition=value.match(/\s*\(([^()]*(?:edit|mix|version|remaster|live|instrumental)[^()]*)\)\s*$/i);
-  const mainTitle=edition?value.slice(0,edition.index).trim()||value:value;
+  const {mainTitle,detail}=displayTitle(title);
   const heading=linesFor(mainTitle,h*.039,'Georgia');
   g.fillStyle='#111315';baseline+=h*.019;
   heading.lines.forEach(line=>{g.fillText(line,center,baseline,textWidth);baseline+=heading.size*1.22;});
-  if(edition){
-    const subtitle=linesFor(edition[1],h*.021,'system-ui');
+  if(detail){
+    const subtitle=linesFor(detail,h*.021,'system-ui');
     g.fillStyle='#292c30';baseline+=h*.004;
     subtitle.lines.forEach(line=>{g.fillText(line,center,baseline,textWidth);baseline+=subtitle.size*1.3;});
   }
   const ruleWidth=Math.min(artSize*.22,100);
   g.fillStyle=accent||'#edac53';g.fillRect(center-ruleWidth/2,baseline+h*.012,ruleWidth,3);
+}
+
+// Presentation only: preserve the original tags and export filename.
+export function displayTitle(title){
+  const value=String(title||'Votre musique sur bande').replace(/["\u201c\u201d\u00ab\u00bb]+/g,'').replace(/\s+/g,' ').trim();
+  const split=value.indexOf('(');
+  if(split<=0)return {mainTitle:value,detail:''};
+  const mainTitle=value.slice(0,split).trim();
+  let detail=value.slice(split).trim();
+  if(detail.endsWith(')'))detail=detail.slice(1,-1).trim();
+  else detail=detail.slice(1).trim();
+  return {mainTitle,detail};
 }
