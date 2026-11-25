@@ -11,7 +11,7 @@ test('all export formats have the correct dimensions at both quality levels',()=
 });
 test('wide compositions preserve the player ratio and fit entirely within the output',()=>{
  for(const format of ['square','landscape']){
-  const images=[];const context={drawImage(...args){images.push(args);},fillRect(){},fillText(){},measureText(){return {width:100};}};
+  const images=[];const context={drawImage(...args){images.push(args);},createLinearGradient(){return {addColorStop(){}};},fillRect(){},fillText(){},measureText(){return {width:100};}};
   const target={width:0,height:0,getContext:()=>context},source={};
   composeVideo(target,source,format,null,'Artist','Title','#123456');
   const [,x,y,w,h]=images[0];
