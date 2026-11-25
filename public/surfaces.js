@@ -45,8 +45,8 @@ export function retroCassette(g,deck,cover,artist,title,p,duration,style) {
 }
 export function trackSurface(g,deck,panel){
  g.save();g.beginPath();g.roundRect(22,970,900,476,16);g.clip();g.drawImage(panel,22,970);
- // Restore hardware as circular elements, not rectangular image patches.
- for(const [x,y,r] of [[105,1327,59],[270,1327,84],[473,1327,104],[670,1327,84],[836,1327,59],[39,988,20],[907,987,20],[40,1423,18],[904,1424,18]]){g.save();g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.clip();g.drawImage(deck,x-r,y-r,r*2,r*2,x-r,y-r,r*2,r*2);g.restore()}
+ // Restore only the mounting screws; transport keys are drawn separately.
+ for(const [x,y,r] of [[39,988,20],[907,987,20],[40,1423,18],[904,1424,18]]){g.save();g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.clip();g.drawImage(deck,x-r,y-r,r*2,r*2,x-r,y-r,r*2,r*2);g.restore()}
  g.restore();
 }
 
