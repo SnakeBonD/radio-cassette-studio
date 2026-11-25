@@ -15,7 +15,7 @@
  setPlaying(false);
  let pointer = null;
  function reflect() {
-  const value = Math.round(player.volume * 100);
+  const value = Math.round((player.listeningVolume ?? player.volume) * 100);
   control.style.setProperty('--volume', `${value}%`);
   control.setAttribute('aria-valuenow', value);
   control.setAttribute('aria-valuetext', `${value} %${player.muted ? ' — son coupé' : ''}`);
@@ -23,7 +23,8 @@
   document.getElementById('mute').setAttribute('aria-pressed', String(player.muted));
  }
  function setVolume(value) {
-  player.volume = Math.max(0, Math.min(100, value)) / 100;
+  player.listeningVolume = Math.max(0, Math.min(100, value)) / 100;
+  player.volume = player.listeningVolume * (player.levelGain ?? 1);
   player.muted = false;
   reflect();
  }
@@ -54,7 +55,7 @@
  ['pointerup','pointercancel','lostpointercapture'].forEach(type => control.addEventListener(type, finish));
  control.addEventListener('keydown', event => {
   control.classList.add('keyboard-focus');
-  const value = player.volume * 100;
+  const value = (player.listeningVolume ?? player.volume) * 100;
   const values = {ArrowRight:value+5,ArrowUp:value+5,ArrowLeft:value-5,ArrowDown:value-5,Home:0,End:100,PageUp:value+10,PageDown:value-10};
   if (!(event.key in values)) return;
   event.preventDefault();setVolume(values[event.key]);
