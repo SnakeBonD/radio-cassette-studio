@@ -17,8 +17,16 @@
 <p class="eyebrow">DU SON À L’IMAGE</p>
 <h1>Votre musique.<br>Sur bande.</h1>
 <p class="intro">Un lecteur intemporel. Une cassette pour chaque histoire.</p>
-<section class="project-panel" aria-label="Projets locaux">
-<h2>Mes projets</h2>
+<section class="import-panel" id="audioDropZone" aria-label="Importer des morceaux">
+<label class="import-button" for="audioFile">Importer mes morceaux</label>
+<input id="audioFile" type="file" accept="audio/*,.mp3,.wav,.flac,.m4a,.aac,.ogg,.opus,.aiff,.aif" multiple aria-describedby="importHelp">
+<p id="importHelp" class="hint">Glissez vos fichiers audio ici, ou choisissez-les sur votre appareil.</p>
+<button id="showProjects" type="button" aria-controls="projectPanel" aria-expanded="false">Ouvrir un projet</button>
+<p id="importStatus" role="status" class="hint"></p>
+</section>
+<details class="project-panel" id="projectPanel">
+<summary>Mes projets</summary>
+
 <label>Nom du projet<input id="projectName" maxlength="80" value="Mon montage">
 </label>
 <label class="check">
@@ -34,13 +42,18 @@
 </label>
 <button id="openProject">Ouvrir le projet</button>
 <button id="deleteProject">Supprimer le projet</button>
+<div class="actions">
+<button id="exportProjectFile" type="button">Télécharger le projet complet</button>
+</div>
+<label>Ouvrir un fichier de projet<input id="importProjectFile" type="file" accept=".rcstudio" aria-describedby="projectFileHelp"></label>
+<p id="projectFileHelp" class="hint">Le fichier .rcstudio contient les morceaux disponibles, les pochettes et les réglages. Vous pouvez le conserver ou l’ouvrir sur un autre appareil.</p>
+<p id="projectFileStatus" class="hint" role="status"></p>
 <p id="saveState" class="hint" role="status">Chargement des sauvegardes…</p>
-</section>
-<fieldset id="fields">
+</details>
+<fieldset id="fields" hidden>
 <legend>01 / La piste</legend>
 
-<label class="upload">Importer des audios<input id="audioFile" type="file" accept="audio/*" multiple>
-</label>
+
 <div class="pair">
 <label>Artiste<input id="artist" maxlength="70" value="" placeholder="Artiste">
 </label>
@@ -83,6 +96,13 @@
 </label>
 <button id="resetCassette">Revenir à la cassette du modèle</button>
 <legend>02 / Le montage</legend>
+<div id="trimEditor" class="trim-editor" aria-label="Sélection de l’extrait">
+<canvas id="trimWave" width="800" height="120" aria-label="Forme d’onde de la chanson"></canvas>
+<div id="trimSelection" class="trim-selection"></div>
+<button id="trimStart" class="trim-handle" type="button" role="slider" aria-label="Début de l’extrait">│</button>
+<button id="trimEnd" class="trim-handle" type="button" role="slider" aria-label="Fin de l’extrait">│</button>
+</div>
+<p class="hint">Déplacez les poignées pour choisir votre extrait. Au clavier, utilisez les flèches pour ajuster de 0,1 seconde.</p>
 <div class="pair">
 <label>Début (min:sec)<input id="start" type="text" inputmode="decimal" placeholder="0:00" value="0:00" aria-describedby="timeHelp">
 </label>
@@ -107,7 +127,7 @@
 <p class="hint">0 = désactivé. Les fondus s’entendent à l’écoute et dans la vidéo. Sur un extrait court, leur durée est réduite proportionnellement.</p>
 <label>Volume d’écoute<input id="volume" type="range" min="0" max="1" step="0.01" value="0.7">
 </label>
-<button id="play" disabled>▶ Écouter</button>
+<button id="play" disabled>▶ Écouter l’extrait</button>
 <input id="seek" aria-label="Position de lecture" type="range" min="0" max="1" step="0.01" value="0" disabled>
 <legend>03 / La vidéo</legend>
 <label>Cadrage 9:16<select id="framing">

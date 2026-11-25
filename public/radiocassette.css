@@ -35,3 +35,13 @@ body{background:#17191b;color:#e8e5de;padding:18px 24px}html{background:#17191b}
 #radioSearch .screenbtn { flex: none; }
 #favFilter[aria-pressed="true"] { background: #d6ffad; color: #072f14; box-shadow: inset 0 0 0 1px #07571a; }
 #stationFavorite:disabled { opacity: .55; }
+
+.results .tape-row{display:flex;align-items:stretch;border-bottom:1px solid #57a563}
+.results .tape-row>button{flex:1;min-width:0;border-bottom:0}
+.results .tape-row-tools{display:flex;flex-shrink:0;align-items:center}
+.results .tape-row-tools button{width:28px;min-width:28px;min-height:30px;padding:3px;text-align:center;justify-content:center}
+.results .tape-row-tools button:disabled{opacity:.35;cursor:default}
+.tapeOptions .tape-toggle{display:flex;align-items:center;gap:8px}
+.tapeOptions .tape-toggle input{margin:0;accent-color:#edac53}
+
+.now-playing{font-size:12px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;color:#073516}
