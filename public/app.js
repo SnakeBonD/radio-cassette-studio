@@ -6,7 +6,7 @@ import {videoZip} from './video-zip.js';
 import {videoDimensions,composeVideo} from './video-layout.js';
 import {encodeProjectFile,decodeProjectFile,projectFilename} from './project-file.js';
 import {createTrimEditor} from './trim-editor.js';
-import {validYear} from './year-utils.js';
+import {validYear,yearDescription} from './year-utils.js';
 import {BODIES} from './cassette-models.js';
 import {loadBodyImages,drawBody,ORIGINAL_FINISHES} from './cassette-bodies.js';
 import {frameTransform} from './framing.js';
@@ -33,7 +33,7 @@ let cover=null,cassette=null,buffer=null,ctx=null,source=null,fadeGain=null,moni
 let exportPosition=null,currentEnvelope=[[0,1],[1,1]],envelopeStart=0;
 let importing=false,batchRunning=false,batchCancelled=false;let zipBusy=false;const batchSelection=new Set(),batchURLs=[],batchFiles=[];
 let library=[],montageWaveCache=null,restoring=true,draftTimer=null,saveQueue=Promise.resolve(),draftRevision=0,projectId=null,jukeboxRunning=false,shuffleHistory=[];
-const baseConfig=duration=>({start:0,end:Math.min(15,duration||15),fadeIn:0,fadeOut:0,framing:'full',quality:'high'});
+const baseConfig=duration=>({start:0,end:duration||0,fadeIn:0,fadeOut:0,framing:'full',quality:'high'});
 function readRange(){if(!buffer)throw Error('Chargez une piste audio.');return bounds(parseTimeInput($('start').value),parseTimeInput($('end').value),buffer.duration)}
 function fadeValues(){const a=Number($('fadeIn').value),b=Number($('fadeOut').value);if($('fadeIn').value===''||$('fadeOut').value===''||!Number.isFinite(a)||!Number.isFinite(b)||a<0||b<0||a>30||b>30)throw Error('Chaque fondu doit être compris entre 0 et 30 secondes.');return [a,b]}
 function selection(){if(!buffer)return {start:0,end:0,duration:0,elapsed:0,fraction:0};try{const range=jukeboxRunning&&$('jukeboxScope').value==='full'?{start:0,end:buffer.duration}:readRange();return montageTime(range.start,range.end,buffer.duration,position())}catch{return {start:0,end:0,duration:0,elapsed:0,fraction:0}}}
@@ -82,22 +82,29 @@ async function load(entry,index,{capture=true}={}){
   if(!entry.file&&!entry.path){applyEntry(entry);status('Audio manquant : resélectionnez « '+(entry.fileName||entry.title)+' » dans le jukebox.');return false}
   const response=entry.file?null:await fetch(entry.path);if(response&&!response.ok)throw Error('Fichier audio indisponible.');const blob=entry.file||await response.blob();
   if(entry.tagsRead&&entry.album===undefined){entry.album=(await readTrackTags(blob,entry.fileName)).album||'';}
-  if(!entry.tagsRead){const tags=await readTrackTags(blob,entry.fileName||entry.file?.name||'Audio.mp3');entry.artist=tags.artist;entry.title=tags.title;entry.album=tags.album||'';entry.year=tags.year;entry.yearOrigin=tags.year?'tag':'';entry.tagWarning=tags.warning;entry.tagsRead=true;if(tags.coverBlob&&!entry.coverBlob){entry.coverBlob=tags.coverBlob;entry.cover=await blobImage(tags.coverBlob)}}
+  if(!entry.tagsRead){const tags=await readTrackTags(blob,entry.fileName||entry.file?.name||'Audio.mp3');entry.artist=tags.artist;entry.title=tags.title;entry.album=tags.album||'';entry.year=tags.year;entry.yearOrigin=tags.yearOrigin;entry.fileYear=tags.fileYear;entry.originalYear=tags.originalYear;entry.yearPolicy=2;entry.tagWarning=tags.warning;entry.tagsRead=true;if(tags.coverBlob&&!entry.coverBlob){entry.coverBlob=tags.coverBlob;entry.cover=await blobImage(tags.coverBlob)}}
   if(!entry.styleKey){entry.styleKey=await fingerprint(blob);if(!entry.style)try{entry.style=readAppearance(localStorage,entry.styleKey)}catch{}}
+  if(entry.yearPolicy!==2){
+   const tags=await readTrackTags(blob,entry.fileName||'Audio.mp3');
+   entry.fileYear=tags.fileYear||(entry.yearOrigin==='tag'?entry.year:'')||'';entry.originalYear=tags.originalYear||'';entry.yearPolicy=2;
+   if(!['manual','web'].includes(entry.yearOrigin)){
+    entry.year=tags.year||entry.year||'';entry.yearOrigin=tags.yearOrigin||(entry.year?'tag':'');entry.yearSearched=false;
+   }
+  }
   const decoded=await audioContext().decodeAudioData(await blob.arrayBuffer());if(generation!==loadGeneration)return false;buffer=decoded;entry.duration=buffer.duration;entry.config||=baseConfig(buffer.duration);try{bounds(entry.config.start,entry.config.end,buffer.duration)}catch{entry.config={...entry.config,...baseConfig(buffer.duration)}}
   offset=entry.config.start;stopAt=buffer.duration;applyEntry(entry);const range=selection();offset=range.start;$('seek').min=range.start;$('seek').max=range.end;$('seek').value=offset;
-  status(entry.tagWarning||'Piste prête.');if(!entry.year&&!entry.yearSearched)searchYear(entry);return true;
+  status(entry.tagWarning||'Piste prête.');if(!['manual','web','original-tag'].includes(entry.yearOrigin)&&!entry.yearSearched)searchYear(entry);return true;
  }catch(e){if(generation===loadGeneration){buffer=null;status('Import impossible : '+e.message)}return false}
  finally{if(generation===loadGeneration){loading=false;setBusy();list();markDirty()}}
 }
-function showYear(entry){$('year').value=entry.year||'';$('yearSource').hidden=!entry.yearUrl;if(entry.yearUrl)$('yearSource').href=entry.yearUrl;$('yearNote').textContent=entry.yearOrigin==='tag'?'Année lue dans le tag du fichier.':entry.yearOrigin==='manual'?'Année renseignée manuellement.':entry.yearOrigin==='web'?'Année trouvée sur MusicBrainz (première sortie de l’enregistrement).':entry.yearMessage||'Année inconnue : aucun autocollant affiché.';}
+function showYear(entry){$('year').value=entry.year||'';$('yearSource').hidden=!entry.yearUrl;if(entry.yearUrl)$('yearSource').href=entry.yearUrl;$('yearNote').textContent=yearDescription(entry);}
 async function searchYear(entry){
- if(!entry||entry.yearOrigin==='tag'||entry.yearOrigin==='manual'){if(entry)$('yearNote').textContent='Année déjà renseignée. Effacez-la pour lancer une recherche.';return}
+ if(!entry||entry.yearOrigin==='original-tag'||entry.yearOrigin==='manual'){if(entry)$('yearNote').textContent='Année déjà renseignée. Effacez-la pour lancer une recherche.';return}
  if(!entry.artist||!entry.title){$('yearNote').textContent='Renseignez l’artiste et le titre pour rechercher l’année.';return}
  const token=entry.yearToken=(entry.yearToken||0)+1,artist=entry.artist,title=entry.title;entry.yearSearched=true;$('yearNote').textContent='Recherche de l’année sur MusicBrainz…';
  try{const response=await fetch('/api/year?'+new URLSearchParams({artist,title}));if(!response.ok)throw Error();const result=await response.json();
  if(token!==entry.yearToken||artist!==entry.artist||title!==entry.title)return;
- entry.year=validYear(result.year);entry.yearOrigin=entry.year?'web':'';entry.yearUrl=entry.year&&/^https:\/\/musicbrainz\.org\/recording\/[a-f0-9-]+$/.test(result.url||'')?result.url:'';entry.yearMessage=result.reason==='ambiguous'?'Plusieurs années possibles : saisissez l’année après vérification.':'Aucune correspondance certaine trouvée ; vous pouvez saisir l’année.';
+ const foundYear=validYear(result.year);entry.year=foundYear||entry.fileYear||'';entry.yearOrigin=foundYear?'web':entry.fileYear?'tag':'';entry.yearUrl=foundYear&&/^https:\/\/musicbrainz\.org\/recording\/[a-f0-9-]+$/.test(result.url||'')?result.url:'';entry.yearMessage=result.reason==='ambiguous'?'Plusieurs années possibles : saisissez l’année après vérification.':'Aucune correspondance certaine trouvée ; vous pouvez saisir l’année.';
  }catch{if(token!==entry.yearToken)return;entry.yearMessage='Recherche indisponible. Vous pouvez saisir l’année ou réessayer.'}
  if(library[active]===entry&&!exporting)showYear(entry);markDirty();
 }
@@ -128,7 +135,7 @@ async function findMissingCovers(all){
  }}finally{coverSearchRunning=false;$('coverProgress').textContent=`Recherche terminée : ${found} pochette(s) ajoutée(s), ${failed} sans résultat ou à réessayer.`;}
 }
 $('findCover').onclick=()=>findMissingCovers(false);$('findAllCovers').onclick=()=>findMissingCovers(true);
-function storedTrack(entry,keepAudio){return {id:entry.id,artist:entry.artist,title:entry.title,album:entry.album,coverUrl:entry.coverUrl,coverMessage:entry.coverMessage,year:entry.year,yearOrigin:entry.yearOrigin,yearUrl:entry.yearUrl,yearSearched:entry.yearSearched,tagsRead:entry.tagsRead,style:entry.style,styleKey:entry.styleKey,config:entry.config,duration:entry.duration,fileName:entry.fileName||entry.file?.name||'',file:keepAudio?entry.file:null,path:null,coverBlob:entry.coverBlob||null,cassetteBlob:entry.cassetteBlob||null}}
+function storedTrack(entry,keepAudio){return {id:entry.id,artist:entry.artist,title:entry.title,album:entry.album,coverUrl:entry.coverUrl,coverMessage:entry.coverMessage,year:entry.year,fileYear:entry.fileYear,originalYear:entry.originalYear,yearPolicy:entry.yearPolicy,yearMessage:entry.yearMessage,yearOrigin:entry.yearOrigin,yearUrl:entry.yearUrl,yearSearched:entry.yearSearched,tagsRead:entry.tagsRead,style:entry.style,styleKey:entry.styleKey,config:entry.config,duration:entry.duration,fileName:entry.fileName||entry.file?.name||'',file:keepAudio?entry.file:null,path:null,coverBlob:entry.coverBlob||null,cassetteBlob:entry.cassetteBlob||null}}
 function snapshot(id,name){captureActive();return {id,name,version:1,updatedAt:Date.now(),tracks:library.map(entry=>storedTrack(entry,$('keepAudio').checked)),active,options:{keepAudio:$('keepAudio').checked,volume:Number($('volume').value),shuffle:$('shuffle').checked,repeat:$('repeat').checked,scope:$('jukeboxScope').value}}}
 function queueWrite(record){saveQueue=saveQueue.catch(()=>{}).then(()=>putProject(record));return saveQueue}
 function markDirty(){if(restoring||loading||importing)return;draftRevision++;clearTimeout(draftTimer);$('saveState').textContent='Modifications à sauvegarder…';draftTimer=setTimeout(()=>saveDraft(),500)}
@@ -137,7 +144,7 @@ async function refreshProjects(selected=''){const records=await allProjects();$(
 async function restore(record){
  clearTimeout(draftTimer);restoring=true;stopJukebox();++loadGeneration;buffer=null;active=-1;library=(record.tracks||[]).map(t=>({...t,id:t.id||crypto.randomUUID(),path:null,style:appearance(t.style)}));
  const options=record.options||{};$('projectName').value=record.name||'Mon montage';$('keepAudio').checked=options.keepAudio!==false;$('volume').value=Number.isFinite(options.volume)?options.volume:.7;if(monitor)monitor.gain.value=Number($('volume').value);$('shuffle').checked=!!options.shuffle;$('repeat').checked=!!options.repeat;$('jukeboxScope').value=options.scope==='clips'?'clips':'full';
- try{if(library.length)await load(library[Math.max(0,Math.min(library.length-1,record.active||0))],Math.max(0,Math.min(library.length-1,record.active||0)),{capture:false});else{cover=cassette=null;$('artist').value='';$('title').value='';$('album').value='';showCover(null);$('year').value='';$('start').value='0:00';$('end').value='0:15';$('fadeIn').value=$('fadeOut').value=0;$('duration').textContent='Chargez une piste pour commencer.';$('relinkLabel').hidden=true;list()}}
+ try{if(library.length)await load(library[Math.max(0,Math.min(library.length-1,record.active||0))],Math.max(0,Math.min(library.length-1,record.active||0)),{capture:false});else{cover=cassette=null;$('artist').value='';$('title').value='';$('album').value='';showCover(null);$('year').value='';$('start').value='0:00';$('end').value='0:00';$('fadeIn').value=$('fadeOut').value=0;$('duration').textContent='Chargez une piste pour commencer.';$('relinkLabel').hidden=true;list()}}
  finally{restoring=false;setBusy();updateJukebox()}
 }
 $('saveProject').onclick=async()=>{if(loading||exporting||importing)return;const id=projectId||crypto.randomUUID();try{await queueWrite(snapshot(id,$('projectName').value.trim()||'Mon montage'));projectId=id;await refreshProjects(id);await saveDraft();status('Projet enregistré sur cet appareil.')}catch(e){status('Enregistrement impossible : '+e.message)}};

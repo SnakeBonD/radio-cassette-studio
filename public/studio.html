@@ -65,7 +65,7 @@
 </label>
 <details class="advanced-panel"><summary>Compléter les informations et la pochette</summary>
 <button id="findYear">Rechercher l’année en ligne</button>
-<p id="yearNote" class="hint">Tag YEAR prioritaire ; sinon recherche par artiste et titre sur MusicBrainz. Aucun audio envoyé.</p>
+<p id="yearNote" class="hint">Date originale des tags prioritaire ; sinon recherche de la première sortie sur MusicBrainz. Une année de compilation reste à confirmer. Aucun audio envoyé.</p>
 <a id="yearSource" target="_blank" rel="noopener" hidden>Source de l’année</a>
 <label>Album (tag ALBUM)<input id="album" type="text" maxlength="180" placeholder="Facultatif · aide à retrouver la bonne édition"></label>
 <button id="findCover">Rechercher la pochette de cette piste</button>
@@ -111,7 +111,7 @@
 <div class="pair">
 <label>Début (min:sec)<input id="start" type="text" inputmode="decimal" placeholder="0:00" value="0:00" aria-describedby="timeHelp">
 </label>
-<label>Fin (min:sec)<input id="end" type="text" inputmode="decimal" placeholder="1:00" value="0:15" aria-describedby="timeHelp">
+<label>Fin (min:sec)<input id="end" type="text" inputmode="decimal" placeholder="1:00" value="0:00" aria-describedby="timeHelp">
 </label>
 </div>
 <p class="hint" id="timeHelp">Ex. 1:30 ou 90 secondes. Les durées rapides commencent au point de début choisi.</p>

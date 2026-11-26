@@ -17,12 +17,15 @@ function cleanTrack(track) {
     id: crypto.randomUUID(), artist:string(track.artist,70), title:string(track.title,90),
     album:string(track.album,180), fileName:string(track.fileName,255),
     year:/^\d{4}$/.test(track.year) ? String(track.year) : '',
-    yearOrigin:['tag','manual','web'].includes(track.yearOrigin) ? track.yearOrigin : '',
+    fileYear:/^\d{4}$/.test(track.fileYear)?String(track.fileYear):'',
+    originalYear:/^\d{4}$/.test(track.originalYear)?String(track.originalYear):'',
+    yearPolicy:track.yearPolicy===2?2:0,yearMessage:string(track.yearMessage,500),
+    yearOrigin:['tag','original-tag','manual','web'].includes(track.yearOrigin) ? track.yearOrigin : '',
     yearUrl:sourceUrl(track.yearUrl), coverUrl:sourceUrl(track.coverUrl),
     coverMessage:string(track.coverMessage,500), yearSearched:!!track.yearSearched,
     tagsRead:!!track.tagsRead, style:appearance(track.style), styleKey:string(track.styleKey,128),
     duration:number(track.duration,0), path:null,
-    config:{start:number(config.start,0),end:number(config.end,15),
+    config:{start:number(config.start,0),end:number(config.end,number(track.duration,0)),
       fadeIn:number(config.fadeIn,0,0,30),fadeOut:number(config.fadeOut,0,0,30),
       videoFormat:['square','landscape'].includes(config.videoFormat)?config.videoFormat:'portrait',framing:config.framing==='safe'?'safe':'full',quality:config.quality==='standard'?'standard':'high'}
   };

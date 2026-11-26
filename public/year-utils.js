@@ -9,3 +9,16 @@ export function chooseYear(data,artist,title){
  dated.sort((a,b)=>Number(a.year)-Number(b.year));
  return {year:dated[0].year,source:'MusicBrainz',url:'https://musicbrainz.org/recording/'+dated[0].id};
 }
+
+export function tagYears(common){
+ const fileYear=validYear(common.year)||validYear(common.date);
+ const originalYear=validYear(common.originalyear)||validYear(common.originaldate);
+ return {fileYear,originalYear,year:originalYear||fileYear,yearOrigin:originalYear?'original-tag':fileYear?'tag':'',yearPolicy:2};
+}
+export function yearDescription(entry){
+ if(entry.yearOrigin==='manual')return 'Année corrigée manuellement — prioritaire sur les recherches.';
+ if(entry.yearOrigin==='original-tag')return 'Date originale indiquée dans les tags du fichier.';
+ if(entry.yearOrigin==='web')return 'Première sortie de cet enregistrement trouvée sur MusicBrainz.'+(entry.fileYear&&entry.fileYear!==entry.year?' Année du fichier : '+entry.fileYear+'.':'');
+ if(entry.yearOrigin==='tag')return 'Année du fichier : '+entry.year+' — à confirmer, elle peut correspondre à un album, une compilation ou une réédition.'+(entry.yearMessage?' '+entry.yearMessage:'');
+ return entry.yearMessage||'Année inconnue : aucun autocollant affiché.';
+}

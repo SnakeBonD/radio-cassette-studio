@@ -5,9 +5,9 @@ import {readTrackTags,fallbackNames} from '../src/metadata.js';
 const base=await readFile(new URL('./fixtures/tagged-audio.mp3',import.meta.url));
 const oldSize=10+((base[6]<<21)|(base[7]<<14)|(base[8]<<7)|base[9]);
 const audio=base.subarray(oldSize,base.subarray(-128,-125).toString()==='TAG'?base.length-128:base.length);
-function tagged(version,encoding,artist,title,year){
+function tagged(version,encoding,artist,title,year,originalYear){
  const frames=[];
- for(const [id,value] of [['TPE1',artist],['TIT2',title],...(year?[[version===4?'TDRC':'TYER',year]]:[])]){
+ for(const [id,value] of [['TPE1',artist],['TIT2',title],...(year?[[version===4?'TDRC':'TYER',year]]:[]),...(originalYear?[[version===4?'TDOR':'TORY',originalYear]]:[])]){
   let bytes=Buffer.from(value,encoding===1?'utf16le':'utf8');if(encoding===1)bytes=Buffer.concat([Buffer.from([255,254]),bytes]);
   const payload=Buffer.concat([Buffer.from([encoding]),bytes]);const header=Buffer.alloc(10);header.write(id);if(version===4){let n=payload.length;header[4]=(n>>21)&127;header[5]=(n>>14)&127;header[6]=(n>>7)&127;header[7]=n&127}else header.writeUInt32BE(payload.length,4);frames.push(header,payload)
  }
@@ -22,3 +22,12 @@ test('missing tags explicitly fall back to cleaned filename',async()=>{assert.de
 test('YEAR and recording-date tags are exposed to the sticker',async()=>{assert.equal((await readTrackTags(tagged(3,1,'ABBA','Song','1980'))).year,'1980');assert.equal((await readTrackTags(tagged(4,3,'Artist','Song','1990-04-12'))).year,'1990');assert.equal((await readTrackTags(tagged(3,1,'Artist','Song'))).year,'')});
 
 test('ALBUM is exposed for artwork search',async()=>{const tags=await readTrackTags(new Blob([base],{type:'audio/mpeg'}),'wrong.mp3');assert.equal(tags.album,'Amber Soul');assert.equal((await readTrackTags(new Blob(['bad']),'test.mp3')).album,'')});
+
+test('original release tags take priority over compilation year for ID3 v2.3 and v2.4',async()=>{
+ for(const version of [3,4]){
+  const tags=await readTrackTags(tagged(version,version===3?1:3,'Artist','Song','2024','1985'));
+  assert.equal(tags.year,'1985');assert.equal(tags.fileYear,'2024');assert.equal(tags.originalYear,'1985');assert.equal(tags.yearOrigin,'original-tag');
+ }
+ const tags=await readTrackTags(tagged(4,3,'Artist','Song','2024'));
+ assert.equal(tags.year,'2024');assert.equal(tags.yearOrigin,'tag');assert.equal(tags.originalYear,'');
+});
