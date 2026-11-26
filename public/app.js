@@ -1,4 +1,4 @@
-import {drawHifiTop,drawHifiKeys} from './hifi-controls.js';
+import {drawPremiumNeedle,drawPremiumWave,drawPremiumIndicator} from './premium-deck.js';
 import {encodeVideo} from './offline-export.js';
 import {bindPlaybackKeys} from './shortcuts.js';
 import {storagePanel} from './storage-panel.js';
@@ -8,11 +8,10 @@ import {encodeProjectFile,decodeProjectFile,projectFilename} from './project-fil
 import {createTrimEditor} from './trim-editor.js';
 import {validYear} from './year-utils.js';
 import {BODIES} from './cassette-models.js';
-import {loadBodyImages,drawBody,clearCassetteBay,ORIGINAL_FINISHES} from './cassette-bodies.js';
+import {loadBodyImages,drawBody,ORIGINAL_FINISHES} from './cassette-bodies.js';
 import {frameTransform} from './framing.js';
 import {THEMES,appearance,readAppearance,writeAppearance,coverAccent} from './themes.js';
 import {readTrackTags} from './metadata.js';
-import {createSurfaces,retroCassette,trackSurface} from './surfaces.js';
 import {bounds,peaks,rms,time,montageTime} from './audio-utils.js';
 import {parseTimeInput,formatTimeInput,presetRange,fadeEnvelope,envelopeAt,scheduleFades,nextTrackIndex,VIDEO_QUALITIES,videoFilename} from './studio-settings.js';
 import {putProject,getProject,allProjects,deleteProject} from './project-store.js';
@@ -26,7 +25,8 @@ const status=s=>$('status').textContent=s;
 const image=url=>new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(Error('Image illisible'));i.src=url});
 async function blobImage(blob){if(!blob)return null;const url=URL.createObjectURL(blob);try{return await image(url)}finally{URL.revokeObjectURL(url)}}
 async function fingerprint(blob){const raw=await blob.arrayBuffer(),hash=await crypto.subtle.digest('SHA-256',raw);return Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('')}
-const deck=await image('assets/deck.png'),trackPanel=createSurfaces(deck),bodyImages=await loadBodyImages();
+const premiumDeck=await image('assets/deck-premium.png'),bodyImages=await loadBodyImages();
+const cassetteLayer=document.createElement('canvas');cassetteLayer.width=941;cassetteLayer.height=1672;const cg=cassetteLayer.getContext('2d');
 for(const id of ['original','eighties']){const option=document.createElement('option');option.value=id;option.textContent=BODIES[id].name;$('body').append(option)}
 $('theme').replaceChildren();for(const [key,finish] of Object.entries(ORIGINAL_FINISHES)){const option=document.createElement('option');option.value=key;option.textContent=finish.name;$('theme').append(option)}
 let cover=null,cassette=null,buffer=null,ctx=null,source=null,fadeGain=null,monitor=null,destination=null,offset=0,started=0,playing=false,exporting=false,loading=false,stopAt=Infinity,url=null,active=-1,loadGeneration=0,playGeneration=0;
@@ -53,15 +53,26 @@ async function play(start=offset,end=buffer?.duration){
  node.start(started,start,end-start);$('play').textContent='Ⅱ Pause';updateJukebox();
 }
 function rect(x,y,w,h,color){g.fillStyle=color;g.fillRect(x,y,w,h)}
-function text(value,x,y,size,color='#e8ded0',width=700){g.fillStyle=color;g.font=`${size}px Arial`;g.fillText(value,x,y,width)}
-function square(img,x,y,s){const d=Math.min(img.width,img.height);g.drawImage(img,(img.width-d)/2,(img.height-d)/2,d,d,x,y,s,s)}
-function meter(x,level,label){const grad=g.createLinearGradient(0,116,0,272);grad.addColorStop(0,'#c68a38');grad.addColorStop(.6,'#ffe19a');grad.addColorStop(1,'#d9a653');rect(x,118,376,152,grad);g.strokeStyle='#362813';g.lineWidth=2;g.beginPath();g.arc(x+188,326,150,Math.PI*1.17,Math.PI*1.83);g.stroke();for(let j=0;j<11;j++){const a=Math.PI*(1.17+j*.066);g.beginPath();g.moveTo(x+188+Math.cos(a)*146,326+Math.sin(a)*146);g.lineTo(x+188+Math.cos(a)*159,326+Math.sin(a)*159);g.stroke()}text('−20   10   5   3   1   0   +3',x+24,163,20,'#382615',330);text('VU',x+157,244,36,'#282018');const a=Math.PI*(1.17+Math.min(1,Math.sqrt(level)*1.5)*.66);g.strokeStyle='#261d17';g.lineWidth=4;g.beginPath();g.moveTo(x+188,273);g.lineTo(x+188+Math.cos(a)*147,273+Math.sin(a)*125);g.stroke()}
 function draw(){requestAnimationFrame(draw);if(!exporting)renderFrame();}
-function renderFrame(){const trimRange=selection();trimEditor.render(buffer,trimRange.start,trimRange.end,exporting||loading||restoring||importing);rect(0,0,1080,1920,'#0b0c0d');g.save();const frame=frameTransform($('framing').value);g.translate(frame.x,frame.y);g.scale(frame.scale,frame.scale);g.drawImage(deck,0,0,941,1672);drawHifiTop(g);const range=selection(),clipWave=selectedWave(range),p=position(),sample=buffer?Math.floor(p*buffer.sampleRate):0;meter(65,buffer&&(playing||exporting)?rms(buffer.getChannelData(0),sample)*envelopeAt(currentEnvelope,p-envelopeStart):0);meter(497,buffer&&(playing||exporting)?rms(buffer.getChannelData(Math.min(1,buffer.numberOfChannels-1)),sample)*envelopeAt(currentEnvelope,p-envelopeStart):0);
-if(cassette){clearCassetteBay(g);const s=Math.min(864/cassette.width,557/cassette.height);g.drawImage(cassette,39+(864-cassette.width*s)/2,378+(557-cassette.height*s)/2,cassette.width*s,cassette.height*s)}else if($('body').value!=='studio'){drawBody(g,bodyImages,$('body').value,cover,$('artist').value,$('title').value,range.elapsed,range.duration,$('accent').value,$('theme').value,$('year').value)}else{retroCassette(g,deck,cover,$('artist').value,$('title').value,range.elapsed,range.duration,{theme:$('theme').value,accent:$('accent').value})}
-// Replace the complete track display, including all baked-in timing and waveform.
-trackSurface(g,deck,trackPanel);g.lineWidth=2;const fraction=range.fraction;for(let j=0;j<240;j++){const height=(clipWave[j]||.015)*40;g.strokeStyle=j/240<=fraction?'#ffb743':'#575650';g.beginPath();g.moveTo(85+j*3.26,1094-height);g.lineTo(85+j*3.26,1094+height);g.stroke()}rect(85+fraction*782,1052,3,87,'#ffbd55');text(time(range.elapsed),84,1164,27,'#ffb743');text(time(range.duration),785,1164,27,'#aaa69e');
-drawHifiKeys(g,deck,playing||exporting);g.restore();composeVideo(canvas,master,$('videoFormat').value,cover,$('artist').value,$('title').value,$('accent').value);$('seek').value=p;}
+function renderFrame(){
+ const trimRange=selection();trimEditor.render(buffer,trimRange.start,trimRange.end,exporting||loading||restoring||importing);
+ rect(0,0,1080,1920,'#7f7f7f');g.save();const frame=frameTransform($('framing').value);g.translate(frame.x,frame.y);g.scale(frame.scale,frame.scale);
+ g.drawImage(premiumDeck,0,0,941,1672);
+ const range=selection(),clipWave=selectedWave(range),p=position(),sample=buffer?Math.floor(p*buffer.sampleRate):0,activePlayback=playing||exporting;
+ for(let channel=0;channel<2;channel++)drawPremiumNeedle(g,channel,buffer&&activePlayback?rms(buffer.getChannelData(Math.min(channel,buffer.numberOfChannels-1)),sample)*envelopeAt(currentEnvelope,p-envelopeStart):0);
+ // A dedicated layer preserves the existing cassette geometry and animations.
+ cg.clearRect(0,0,941,1672);
+ if(cassette){
+  g.fillStyle='#090a0b';g.beginPath();g.roundRect(80,444,784,511,22);g.fill();
+  const scale=Math.min(784/cassette.width,511/cassette.height);
+  g.drawImage(cassette,80+(784-cassette.width*scale)/2,444+(511-cassette.height*scale)/2,cassette.width*scale,cassette.height*scale);
+ }else{
+  drawBody(cg,bodyImages,$('body').value,cover,$('artist').value,$('title').value,range.elapsed,range.duration,$('accent').value,$('theme').value,$('year').value);
+  g.drawImage(cassetteLayer,31,370,880,573,80,444,784,784*573/880);
+ }
+ drawPremiumWave(g,clipWave,range);drawPremiumIndicator(g,activePlayback);
+ g.restore();composeVideo(canvas,master,$('videoFormat').value,cover,$('artist').value,$('title').value,$('accent').value);$('seek').value=p;
+}
 function captureActive(){const entry=library[active];if(!entry||loading)return;entry.artist=$('artist').value;entry.title=$('title').value;entry.album=$('album').value;entry.year=validYear($('year').value);entry.style=appearance({body:$('body').value,theme:$('theme').value,accent:$('accent').value});try{const start=parseTimeInput($('start').value),end=parseTimeInput($('end').value);if(entry.duration)bounds(start,end,entry.duration);const [fadeIn,fadeOut]=fadeValues();entry.config={start,end,fadeIn,fadeOut,framing:$('framing').value,quality:$('quality').value,videoFormat:$('videoFormat').value}}catch{}}
 function applyEntry(entry){const style=appearance(entry.style);if(!['original','eighties'].includes(style.body))style.body='original';entry.style=style;$('body').value=style.body;$('theme').value=style.theme;$('accent').value=style.accent;$('artist').value=entry.artist||'';$('title').value=entry.title||'';$('album').value=entry.album||'';showCover(entry);showYear(entry);cover=entry.cover||null;cassette=entry.cassette||null;const config=entry.config||baseConfig(entry.duration);$('start').value=formatTimeInput(config.start);$('end').value=formatTimeInput(config.end);$('fadeIn').value=config.fadeIn||0;$('fadeOut').value=config.fadeOut||0;$('framing').value=config.framing==='safe'?'safe':'full';$('quality').value=VIDEO_QUALITIES[config.quality]?config.quality:'high';$('videoFormat').value=['square','landscape'].includes(config.videoFormat)?config.videoFormat:'portrait';updateFraming();updateQuality();$('duration').textContent=entry.duration?'Chanson : '+formatTimeInput(entry.duration)+(buffer?' · '+buffer.numberOfChannels+' canal/canaux':''):'Audio à resélectionner.';$('relinkLabel').hidden=!!(entry.file||entry.path)}
 async function load(entry,index,{capture=true}={}){
