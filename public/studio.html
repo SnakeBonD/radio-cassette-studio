@@ -86,6 +86,12 @@
 </label>
 </details>
 <details class="advanced-panel"><summary>Personnaliser la cassette</summary>
+<details><summary>Mes préréglages</summary>
+<label>Nom<input id="presetName" maxlength="60" placeholder="Mon style années 80"></label>
+<button id="savePreset" type="button">Enregistrer les réglages actuels</button>
+<label>Préréglages enregistrés<select id="presetList"></select></label>
+<button id="applyPreset" type="button">Appliquer</button><button id="deletePreset" type="button">Supprimer</button>
+<p class="hint">Cassette, couleurs, format, qualité, cadrage, fondus et volume d’export. Conservés sur cet appareil. Les limites de l’extrait restent inchangées.</p><p id="presetStatus" class="hint" role="status"></p></details>
 <label>Corps de cassette<select id="body">
 </select>
 </label>
@@ -158,6 +164,8 @@
 </select>
 </label>
 </details>
+<label><input id="normalizeExport" type="checkbox"> Harmoniser le volume de cette vidéo</label>
+<p class="hint">Ajuste le niveau moyen de l’extrait sans compresser ses nuances. Amplification limitée et crêtes protégées ; certains morceaux peuvent rester plus faibles. Le fichier original est conservé.</p>
 <p class="hint" id="qualityNote">1080 × 1920 · 30 images/s · audio inclus</p>
 <p class="hint">Export image par image : vous pouvez réduire la fenêtre. Gardez l’onglet ouvert et l’ordinateur éveillé. Le volume d’écoute ne modifie pas celui de la vidéo.</p>
 <button id="export" class="primary" disabled>Créer la vidéo</button>

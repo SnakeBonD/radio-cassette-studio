@@ -22,3 +22,12 @@ export function drawPremiumIndicator(g,playing){
  g.save();g.fillStyle='#ffbf48';g.shadowColor='#ffac36';g.shadowBlur=5;
  g.beginPath();g.arc(294,1240,2.8,0,Math.PI*2);g.fill();g.restore();
 }
+export function drawPremiumControls(g,facade,{playing=false,paused=false,volume=.7}={}){
+ // Reuse the photographed key face, inset by two pixels when latched.
+ const x=playing?232:paused?618:null;
+ if(x!==null){g.save();g.beginPath();g.rect(x,1231,121,70);g.clip();g.fillStyle='#080909';g.fillRect(x,1231,121,70);g.drawImage(facade,x,1231,121,70,x+1,1234,119,68);g.fillStyle='#00000032';g.fillRect(x,1231,121,70);g.restore();}
+ // Rotate only the knob's central disc and its index; the fixed scale stays intact.
+ g.save();g.translate(784,1437);g.beginPath();g.arc(0,0,40,0,Math.PI*2);g.clip();
+ g.rotate((Math.max(0,Math.min(1,volume))-.5)*Math.PI*1.5);
+ g.drawImage(facade,744,1397,80,80,-40,-40,80,80);g.restore();
+}

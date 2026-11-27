@@ -25,7 +25,7 @@ function cleanTrack(track) {
     coverMessage:string(track.coverMessage,500), yearSearched:!!track.yearSearched,
     tagsRead:!!track.tagsRead, style:appearance(track.style), styleKey:string(track.styleKey,128),
     duration:number(track.duration,0), path:null,
-    config:{start:number(config.start,0),end:number(config.end,number(track.duration,0)),
+    config:{normalizeExport:!!config.normalizeExport,start:number(config.start,0),end:number(config.end,number(track.duration,0)),
       fadeIn:number(config.fadeIn,0,0,30),fadeOut:number(config.fadeOut,0,0,30),
       videoFormat:['square','landscape'].includes(config.videoFormat)?config.videoFormat:'portrait',framing:config.framing==='safe'?'safe':'full',quality:config.quality==='standard'?'standard':'high'}
   };
