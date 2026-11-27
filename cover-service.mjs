@@ -1,11 +1,12 @@
 const normalize = value => String(value || '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
 const mbid = /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;
-export function coverCandidates(data, artist, title, album = '') {
+export function coverCandidates(data, artist, title, album = '', kind = '') {
   const recordings = (data.recordings || []).filter(r => Number(r.score) >= 95 && !r.disambiguation && normalize(r.title) === normalize(title) && normalize((r['artist-credit'] || []).map(a => (a.name || a.artist?.name || '') + (a.joinphrase || '')).join('')) === normalize(artist));
   const identities = new Set(recordings.map(r => (r['artist-credit'] || []).map(a => a.artist?.id || a.name).join('/')));
   if (identities.size > 1) return [];
   const releases = recordings.flatMap(r => r.releases || []).filter(r => mbid.test(r.id) && (album ? normalize(r.title) === normalize(album) : !(r['release-group']?.['secondary-types'] || []).includes('Compilation')));
-  return [...new Map(releases.sort((a,b) => (a.date || '9999').localeCompare(b.date || '9999')).map(r => [r.id,r])).values()].slice(0, 2);
+  const filtered=kind?releases.filter(r=>r.status==='Official'&&r.date&&r['release-group']?.['primary-type']===kind&&!(r['release-group']?.['secondary-types']||[]).some(t=>['Compilation','Live','Remix'].includes(t))):releases;
+  return [...new Map(filtered.sort((a,b) => (a.date || '9999').localeCompare(b.date || '9999')).map(r => [r.id,r])).values()].slice(0, 2);
 }
 let queue = Promise.resolve(), lastRequest = 0;
 export function musicBrainzRecordings(artist, title, album = '') {
@@ -22,8 +23,8 @@ export function musicBrainzRecordings(artist, title, album = '') {
   queue = run.catch(() => {});
   return run;
 }
-export async function lookupCover(artist, title, album = '', request = fetch, search = musicBrainzRecordings) {
-  const candidates = coverCandidates(await search(artist,title,album), artist,title,album);
+export async function lookupCover(artist, title, album = '', request = fetch, search = musicBrainzRecordings, kind = '') {
+  const candidates = coverCandidates(await search(artist,title,album), artist,title,album,kind);
   const attempts=candidates.map(release=>({release,kind:'release',id:release.id}));
   const groups=new Set();
   for(const release of candidates){const id=release['release-group']?.id;if(mbid.test(id||'')&&!groups.has(id)){groups.add(id);attempts.push({release,kind:'release-group',id});}}
@@ -36,7 +37,7 @@ export async function lookupCover(artist, title, album = '', request = fetch, se
     const reader = response.body.getReader(), chunks = []; let size = 0;
     while (true) { const {done,value} = await reader.read(); if (done) break; size += value.length; if (size > 3_000_000) { await reader.cancel(); throw Error('Image trop volumineuse'); } chunks.push(value); }
     if (!size) throw Error('Image vide');
-    return {image:Buffer.concat(chunks).toString('base64'), type, album:release.title, source:'MusicBrainz / Cover Art Archive', url:'https://musicbrainz.org/' + kind + '/' + id};
+    return {image:Buffer.concat(chunks).toString('base64'), type, album:release.title, date:release.date||'', kind:release['release-group']?.['primary-type']||'', source:'MusicBrainz / Cover Art Archive', url:'https://musicbrainz.org/' + kind + '/' + id};
   }
   return {reason:'not-found'};
 }

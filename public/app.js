@@ -1,3 +1,4 @@
+import {metadataReview} from './metadata-review.js';
 import {drawPremiumNeedle,drawPremiumWave,drawPremiumIndicator} from './premium-deck.js';
 import {encodeVideo} from './offline-export.js';
 import {bindPlaybackKeys} from './shortcuts.js';
@@ -327,6 +328,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&!restoring
 window.addEventListener('beforeunload',e=>{if(exporting||importing||batchRunning||zipBusy||$('saveState').textContent.startsWith('Modifications')){e.preventDefault();e.returnValue=''}});
 bindPlaybackKeys(document,{enabled:()=>!!buffer&&!exporting&&!loading&&!restoring&&!importing&&!batchRunning&&!zipBusy,toggle:()=>$('play').click(),seek:delta=>{const range=selection();$('seek').value=Math.max(range.start,Math.min(range.end,position()+delta));$('seek').dispatchEvent(new Event('input'));}});
 storagePanel(document,{isBusy:()=>exporting||loading||restoring||importing||batchRunning||zipBusy,beforeRefresh:async()=>{await saveDraft();await saveQueue;},onDeleted:async ids=>{if(ids.includes(projectId))projectId=null;await refreshProjects();}});
+metadataReview({document,getTracks:()=>library,getActive:()=>library[active],isBusy:()=>exporting||loading||restoring||importing||batchRunning||zipBusy,capture:captureActive,decodeImage:blobImage,changed:entry=>{if(library[active]===entry){cover=entry.cover||null;showYear(entry);showCover(entry);}markDirty();}});
 updateFraming();updateQuality();setBusy();draw();
 try{await refreshProjects();const draft=await getProject('draft');if(draft?.tracks?.length){await restore(draft);$('saveState').textContent='Dernier brouillon restauré depuis cet appareil.'}else $('saveState').textContent='Sauvegarde automatique locale prête.'}catch(e){$('saveState').textContent='Stockage local indisponible : les projets resteront dans cette session. '+e.message}
 finally{restoring=false;setBusy();list()}

@@ -64,6 +64,8 @@
 <label>Année de la chanson<input id="year" type="text" inputmode="numeric" maxlength="4" placeholder="Année inconnue">
 </label>
 <details class="advanced-panel"><summary>Compléter les informations et la pochette</summary>
+<button id="reviewYears" type="button">Vérifier les années de toute la playlist</button>
+<p id="yearReviewStatus" class="hint" role="status"></p><div id="yearReviewResults"></div>
 <button id="findYear">Rechercher l’année en ligne</button>
 <p id="yearNote" class="hint">Date originale des tags prioritaire ; sinon recherche de la première sortie sur MusicBrainz. Une année de compilation reste à confirmer. Aucun audio envoyé.</p>
 <a id="yearSource" target="_blank" rel="noopener" hidden>Source de l’année</a>
@@ -74,6 +76,12 @@
 <p id="coverNote" class="hint" role="status"></p>
 <a id="coverSource" target="_blank" rel="noopener" hidden>Source de la pochette</a>
 <p id="coverProgress" class="hint" role="status"></p>
+<details><summary>Choisir une pochette d’origine</summary>
+<label>Édition recherchée<select id="originalCoverKind"><option value="Single">Single</option><option value="Album">Album studio</option></select></label>
+<button id="reviewCover" type="button">Proposer une pochette</button>
+<p class="hint">La plus ancienne édition officielle correspondante disponible dans les résultats, hors compilations. Vérifiez l’aperçu : la toute première édition n’est pas toujours documentée.</p>
+<p id="originalCoverStatus" class="hint" role="status"></p><div id="originalCoverResults"></div>
+</details>
 <label>Cover carrée · recadrage centré<input id="coverFile" type="file" accept="image/png,image/jpeg,image/webp">
 </label>
 </details>

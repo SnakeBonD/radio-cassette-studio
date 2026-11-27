@@ -20,3 +20,10 @@ test('cover service returns a bounded raster image and source, handles missing a
  assert.deepEqual(await lookupCover('Daft Punk','Da Funk','',async()=>new Response('',{status:404}),async()=>data),{reason:'not-found'});
  await assert.rejects(lookupCover('Daft Punk','Da Funk','',async()=>new Response('<svg/>',{headers:{'content-type':'image/svg+xml'}}),async()=>data));
 });
+
+test('original artwork proposals exclude compilations and unverified editions and distinguish singles from albums',()=>{
+ const release=(kind,extra={})=>({id,title:'Release',status:'Official',date:'1985','release-group':{'primary-type':kind},...extra});
+ const candidates=releases=>({recordings:[{...recording,releases}]});
+ assert.equal(coverCandidates(candidates([release('Single')]),'Daft Punk','Da Funk','','Single').length,1);
+ for(const r of [release('Album'),release('Single',{status:'Bootleg'}),release('Single',{date:''}),release('Single',{'release-group':{'primary-type':'Single','secondary-types':['Compilation']}})])assert.equal(coverCandidates(candidates([r]),'Daft Punk','Da Funk','','Single').length,0);
+});
