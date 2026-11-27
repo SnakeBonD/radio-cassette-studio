@@ -35,25 +35,34 @@ export function metadataReview({document,getTracks,getActive,isBusy,capture,chan
  $('reviewCover').onclick=async()=>{
   if(coverRunning||isBusy())return;capture();const entry=getActive();if(!entry)return;
   const artist=entry.artist,title=entry.title,oldBlob=entry.coverBlob,oldCover=entry.cover;
-  coverRunning=true;$('reviewCover').disabled=true;$('originalCoverResults').replaceChildren();$('originalCoverStatus').textContent='Recherche d’une édition d’origine…';
+  let applied=false;
+  coverRunning=true;$('reviewCover').disabled=true;$('originalCoverResults').replaceChildren();$('originalCoverStatus').textContent='Recherche de pochettes à comparer…';
   try{
    if(!artist||!title)throw Error('Renseignez l’artiste et le titre.');
-   const response=await fetch('/api/cover?'+new URLSearchParams({artist,title,kind:$('originalCoverKind').value}),{signal:AbortSignal.timeout(55000)});
+   const response=await fetch('/api/cover?'+new URLSearchParams({artist,title,kind:$('originalCoverKind').value,mode:'choices'}),{signal:AbortSignal.timeout(55000)});
    if(!response.ok)throw Error('Recherche indisponible, réessayez plus tard.');
-   const result=await response.json();
-   if(!result.image||!['image/jpeg','image/png','image/webp'].includes(result.type)||!source(result.url))throw Error('Aucune pochette correspondante trouvée pour cette édition. Votre pochette est conservée.');
+   const payload=await response.json();
+   const results=(Array.isArray(payload.results)?payload.results:[]).slice(0,3);
+   let displayed=0;
+   for(const result of results){
+   if(!result.image||!['image/jpeg','image/png','image/webp'].includes(result.type)||!source(result.url))continue;
    const blob=await(await fetch(`data:${result.type};base64,${result.image}`)).blob(),img=await decodeImage(blob);
-   const row=$('originalCoverResults');text(row,`${artist} — ${title}`,'strong');
+   const row=document.createElement('div');row.className='metadata-proposal';$('originalCoverResults').append(row);displayed++;text(row,`${artist} — ${title}`,'strong');
    const preview=document.createElement('img');
    preview.src=`data:${result.type};base64,${result.image}`;preview.alt='Pochette proposée : '+result.album;preview.className='cover-proposal';row.append(preview);
-   text(row,`${result.album}${result.date?' · '+result.date:''}`);link(row,result.url);
+   text(row,result.album||'Édition sans titre');
+   const labels={Single:'Single',Album:'Album',Compilation:'Compilation',Live:'Concert',Remix:'Remix',EP:'EP'};
+   text(row,[labels[result.kind]||result.kind||'Type non précisé',...(result.secondaryTypes||[]).map(t=>labels[t]||t),result.date||'Date non renseignée',result.country||''].filter(Boolean).join(' · '));link(row,result.editionUrl||result.url);
+   if(result.groupArtwork){text(row,'Pochette du groupe d’éditions : elle peut différer de cette édition précise.');link(row,result.url);}
    const apply=text(row,'Utiliser cette pochette','button');apply.type='button';
    apply.onclick=()=>{
-    if(isBusy())return;
+    if(isBusy()||applied)return;
     if(!getTracks().includes(entry)||getActive()!==entry||entry.artist!==artist||entry.title!==title||entry.coverBlob!==oldBlob||entry.cover!==oldCover){apply.disabled=true;$('originalCoverStatus').textContent='La piste ou sa pochette a changé. Relancez la recherche.';return;}
-    entry.coverBlob=blob;entry.cover=img;entry.coverUrl=source(result.url);entry.coverMessage=`Pochette choisie : ${result.album}${result.date?' ('+result.date+')':''}.`;changed(entry);apply.disabled=true;$('originalCoverStatus').textContent='Pochette remplacée et mémorisée pour cette piste.';
+    applied=true;entry.coverBlob=blob;entry.cover=img;entry.coverUrl=source(result.url);entry.coverMessage=`Pochette choisie : ${result.album}${result.date?' ('+result.date+')':''}.`;changed(entry);for(const button of $('originalCoverResults').querySelectorAll('button'))button.disabled=true;apply.textContent='Pochette choisie';$('originalCoverStatus').textContent='Pochette remplacée et mémorisée. L’année du morceau est conservée.';
    };
-   $('originalCoverStatus').textContent='Aperçu proposé : votre pochette actuelle reste inchangée jusqu’à validation.';
+   }
+   if(!displayed)throw Error(payload.reason==='unavailable'?'Les pochettes sont momentanément indisponibles. Réessayez plus tard.':'Aucune pochette correspondante trouvée. Votre pochette est conservée.');
+   $('originalCoverStatus').textContent=`${displayed} pochette(s) à comparer. Votre pochette actuelle reste inchangée jusqu’au choix.`+(payload.partial?' Certains résultats sont indisponibles.':'');
   }catch(error){$('originalCoverStatus').textContent=error.message;}
   finally{coverRunning=false;$('reviewCover').disabled=false;}
  };
