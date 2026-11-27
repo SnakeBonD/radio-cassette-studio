@@ -169,15 +169,20 @@
 <p class="hint" id="qualityNote">1080 × 1920 · 30 images/s · audio inclus</p>
 <p class="hint">Export image par image : vous pouvez réduire la fenêtre. Gardez l’onglet ouvert et l’ordinateur éveillé. Le volume d’écoute ne modifie pas celui de la vidéo.</p>
 <button id="export" class="primary" disabled>Créer la vidéo</button>
+<button id="testVideo" type="button" disabled>Tester 5 secondes</button>
+<p class="hint">Le test montre les 5 premières secondes du montage (ou sa durée s’il est plus court), avec les mêmes réglages et fondus. Il ne modifie pas votre sélection.</p>
 <button id="still">Enregistrer une image PNG</button>
 <details class="advanced-panel" id="batchPanel"><summary>Exporter plusieurs vidéos</summary>
+<button id="applyBatchSettings" type="button">Appliquer les réglages vidéo aux pistes cochées</button>
+<p class="hint">Copie le format, la qualité, le cadrage et l’option d’harmonisation du volume du morceau affiché. Chaque piste conserve son extrait, ses fondus et sa cassette.</p>
+<p id="batchSettingsStatus" class="hint" role="status"></p>
 <button id="batchExport" type="button">Exporter les pistes cochées</button><p class="hint" id="batchStatus" role="status">Cochez les pistes dans le jukebox. Chaque vidéo conserve les réglages de sa piste. Vous pouvez réduire la fenêtre ; gardez l’onglet ouvert et l’ordinateur éveillé.</p><div id="batchResults"></div>
 <button id="downloadZip" type="button" hidden>Télécharger toutes les vidéos (ZIP)</button><p id="zipStatus" role="status" class="hint"></p></details>
 </fieldset>
 <button id="batchCancel" type="button" hidden>Arrêter la série</button><button id="cancel" hidden>Annuler l’export</button>
 <p id="status" role="status">Studio prêt. Fichiers traités sur cet appareil.</p>
 <section id="videoResult" hidden>
-<h2>Votre vidéo</h2>
+<h2 id="videoResultTitle">Votre vidéo</h2>
 <video id="videoPreview" controls playsinline preload="metadata" aria-label="Aperçu de la vidéo exportée">
 </video>
 <p id="videoInfo" class="hint">
