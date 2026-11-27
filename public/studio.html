@@ -208,6 +208,9 @@
 <label class="check">
 <input id="repeat" type="checkbox">Répéter la playlist</label>
 <p id="jukeboxStatus" class="hint" role="status">Playlist vide.</p>
+<label>Afficher les pistes<select id="trackReviewFilter"><option value="all">Toutes les pistes</option><option value="incomplete">À compléter</option></select></label>
+<p class="hint">Les indicateurs repèrent les champs absents et les années issues du seul tag YEAR. Une année renseignée manuellement, issue d’un tag de date originale ou trouvée sur MusicBrainz reste à vérifier si nécessaire.</p>
+<p id="trackReviewStatus" class="hint" role="status"></p>
 <div id="library">
 </div>
 <label id="relinkLabel" class="upload" hidden>Resélectionner le fichier audio de cette piste<input id="relinkFile" type="file" accept="audio/*">
